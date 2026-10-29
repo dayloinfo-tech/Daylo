@@ -119,7 +119,6 @@
 
         if (fb && fb.ok && fb.signInWithPopup) {
           const provider = new fb.GoogleAuthProvider();
-          provider.addScope('https://www.googleapis.com/auth/calendar.events');
           const res = await fb.signInWithPopup(fb.auth, provider);
           
           try {
