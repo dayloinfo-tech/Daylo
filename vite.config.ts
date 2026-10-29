@@ -8,19 +8,19 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname, '.'),
       },
     },
     build: {
       rollupOptions: {
         input: {
-          main: path.resolve(__dirname, 'index.html'),
-          login: path.resolve(__dirname, 'login.html'),
-          signup: path.resolve(__dirname, 'signup.html'),
-          dashboard: path.resolve(__dirname, 'dashboard.html'),
-          upgrade: path.resolve(__dirname, 'upgrade.html'),
-          contact: path.resolve(__dirname, 'contact.html'),
-          admin: path.resolve(__dirname, 'admin.html'),
+          main: path.resolve(import.meta.dirname, 'index.html'),
+          login: path.resolve(import.meta.dirname, 'login.html'),
+          signup: path.resolve(import.meta.dirname, 'signup.html'),
+          dashboard: path.resolve(import.meta.dirname, 'dashboard.html'),
+          upgrade: path.resolve(import.meta.dirname, 'upgrade.html'),
+          contact: path.resolve(import.meta.dirname, 'contact.html'),
+          admin: path.resolve(import.meta.dirname, 'admin.html'),
         },
       },
     },
