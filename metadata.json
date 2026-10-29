@@ -1,0 +1,6 @@
+{
+  "name": "Daylo - AI Productivity Planner",
+  "description": "Daylo combines tasks, calendar, urgency scoring, and an adaptive AI assistant with AI usage limits and admin management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

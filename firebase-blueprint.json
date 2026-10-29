@@ -1,0 +1,113 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account details and AI usage limits.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 256 },
+        "email": { "type": "string", "format": "email", "maxLength": 256 },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "plan": { "type": "string", "enum": ["free", "pro", "premium"] },
+        "aiMinutesUsed": { "type": "number" },
+        "aiLimit": { "type": "number" },
+        "totalAIRequests": { "type": "number" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "name"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A scheduled task or to-do item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "uid": { "type": "string", "maxLength": 128 },
+        "content": { "type": "string", "maxLength": 512 },
+        "category": { "type": "string", "maxLength": 64 },
+        "linked_person": { "type": "string", "maxLength": 128 },
+        "due_date": { "type": "string", "format": "date-time" },
+        "scheduled_start": { "type": "string", "format": "date-time" },
+        "scheduled_end": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "maxLength": 32 },
+        "google_event_id": { "type": "string", "maxLength": 256 },
+        "priority": { "type": "number" },
+        "duration_hours": { "type": "number" },
+        "missed_count": { "type": "number" }
+      },
+      "required": ["uid", "content"]
+    },
+    "Miss": {
+      "title": "Miss Record",
+      "description": "Telemetry for rescheduled or missed slots.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "taskId": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "taskId", "timestamp"]
+    },
+    "ContactMessage": {
+      "title": "Contact Message",
+      "description": "Messages sent via the contact form.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 256 },
+        "email": { "type": "string", "format": "email", "maxLength": 256 },
+        "message": { "type": "string", "maxLength": 2048 },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "message"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app system notifications.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 256 },
+        "message": { "type": "string", "maxLength": 1024 },
+        "type": { "type": "string", "enum": ["daily_summary", "task_reminder", "task_overdue", "system"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "link": { "type": "string", "maxLength": 512 },
+        "source": { "type": "string", "maxLength": 128 },
+        "dedupeKey": { "type": "string", "maxLength": 256 },
+        "taskId": { "type": "string", "maxLength": 128 },
+        "dueDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "message", "type", "read"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and settings."
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User in-app notifications."
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "User tasks."
+    },
+    "/misses/{missId}": {
+      "schema": "Miss",
+      "description": "Missed task telemetry."
+    },
+    "/contact_messages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "Contact form submissions."
+    },
+    "/app_config/{configId}": {
+      "schema": "object",
+      "description": "Application global configuration."
+    },
+    "/n8n_config/{configId}": {
+      "schema": "object",
+      "description": "n8n webhook configuration."
+    }
+  }
+}

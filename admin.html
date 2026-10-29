@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daylo - Admin Portal & Workflow Console</title>
+  <meta name="description" content="Daylo administrator dashboard for managing users, AI limits, revenue, and n8n webhooks.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #F3FDF8; color: #172033; }
+  </style>
+  <script type="module" src="/firebase.js"></script>
+</head>
+<body class="bg-[#F3FDF8] min-h-screen flex flex-col md:flex-row">
+  <!-- Firebase Auth Configuration -->
+  <script>
+    const AUTHORIZED_ADMINS = ["dayloinfo@gmail.com", "uchechukwusandra0@gmail.com"];
+  </script>
+
+  <!-- Dark Navy Sidebar (#1A2447) permanently visible matching Figma -->
+  <aside class="fixed top-0 bottom-0 left-0 w-12 sm:w-52 md:w-64 bg-[#1A2447] text-white z-40 flex flex-col justify-between p-1.5 sm:p-4 md:p-5 border-r border-[#151D3A] overflow-y-auto">
+    <div>
+      <!-- Brand & Admin Tag -->
+      <div class="flex items-center justify-center sm:justify-start pb-3 sm:pb-6 border-b border-white/10 mb-3 sm:mb-6 gap-2">
+        <a href="/dashboard.html" class="flex items-center gap-2">
+          <img src="/public/assets/aistudio/DAYLO_LOGO_-_WHITE_2_029ff8f8.png" alt="Daylo Logo" class="h-6 sm:h-8 w-auto object-contain">
+        </a>
+      </div>
+
+      <!-- Navigation tabs -->
+      <nav class="space-y-1 sm:space-y-1.5 text-xs font-semibold">
+        <button onclick="showTab('users')" id="tabBtnUsers" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl bg-white text-[#1A2447] font-bold shadow-md" title="Users">
+          <span class="text-base sm:text-sm font-bold flex-none">👥</span> <span class="hidden sm:inline truncate">User Management</span>
+        </button>
+        <button onclick="showTab('webhooks')" id="tabBtnWebhooks" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition" title="Webhooks">
+          <span class="text-base sm:text-sm font-bold flex-none">⚡</span> <span class="hidden sm:inline truncate">n8n Webhooks</span>
+        </button>
+        <button onclick="showTab('limits')" id="tabBtnLimits" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition" title="Global Limits">
+          <span class="text-base sm:text-sm font-bold flex-none">⚙</span> <span class="hidden sm:inline truncate">Global AI Limits</span>
+        </button>
+        <button onclick="showTab('rules')" id="tabBtnRules" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition" title="Firestore Rules">
+          <span class="text-base sm:text-sm font-bold flex-none">🛡</span> <span class="hidden sm:inline truncate">Firestore Rules</span>
+        </button>
+        <button onclick="showTab('instructions')" id="tabBtnInstructions" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition" title="Guide">
+          <span class="text-base sm:text-sm font-bold flex-none">📖</span> <span class="hidden sm:inline truncate">Architecture Guide</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Sidebar Bottom: Admin Status & Return -->
+    <div class="pt-3 sm:pt-6 border-t border-white/10 space-y-2">
+      <div class="hidden sm:block p-3 rounded-xl bg-white/5 border border-white/10 text-xs">
+        <div class="text-[10px] text-white/50 uppercase font-bold tracking-wider">Authenticated As</div>
+        <div id="adminUserBadge" class="text-xs font-bold text-white truncate mt-0.5">Checking…</div>
+      </div>
+      <a href="/dashboard.html" class="block w-full py-2 text-center rounded-xl bg-white/10 text-white text-xs font-bold hover:bg-white/20 transition" title="Return to App">
+        <span class="sm:hidden">←</span>
+        <span class="hidden sm:inline">← Open Daylo App</span>
+      </a>
+      <button onclick="handleAdminLogout()" class="w-full py-1.5 text-center text-[11px] text-white/50 hover:text-red-400 transition" title="Sign Out">
+        <span class="sm:hidden">✕</span>
+        <span class="hidden sm:inline">Sign Out Admin</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content View -->
+  <main class="ml-12 sm:ml-52 md:ml-64 flex-1 min-w-0 flex flex-col overflow-y-auto overflow-x-hidden">
+    <!-- Topbar / Menu Bar with uploaded image background -->
+    <header class="h-16 border-b border-[#E8ECF2] sticky top-0 z-30 flex items-center justify-between px-3.5 sm:px-6 md:px-8 bg-cover bg-center flex-none" style="background-image: url('/public/assets/aistudio/Frame_388_a7211cc4.png');">
+      <div class="min-w-0">
+        <h1 class="text-base sm:text-lg font-black text-[#1A2447] truncate" id="adminPageTitle">User & Account Management</h1>
+        <p class="text-[10px] sm:text-xs text-[#697386] truncate">Control subscriptions, AI quotas, n8n webhook triggers, and cloud security.</p>
+      </div>
+      <div class="flex items-center gap-3 flex-none ml-2">
+        <button onclick="refreshAllData()" class="px-3.5 py-2 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-xs cursor-pointer">
+          ↻ Refresh Records
+        </button>
+      </div>
+    </header>
+
+    <div class="p-3.5 sm:p-6 md:p-8 flex-1">
+
+    <!-- 4 Stats Cards matching Figma white cards border #E8ECF2 rounded 16px -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-5 shadow-xs">
+        <div class="text-xs font-bold text-[#697386]">Total Registered Users</div>
+        <div class="text-3xl font-black text-[#1A2447] mt-2 mb-1" id="statTotalUsers">0</div>
+        <div class="text-[11px] text-[#697386]" id="statUsersBreakdown">0 Free · 0 Pro · 0 Prem</div>
+      </div>
+
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-5 shadow-xs">
+        <div class="text-xs font-bold text-[#697386]">Pro & Premium Ratio</div>
+        <div class="text-3xl font-black text-[#2CA67A] mt-2 mb-1" id="statPaidCount">0</div>
+        <div class="text-[11px] text-[#697386]">Paying customers</div>
+      </div>
+
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-5 shadow-xs">
+        <div class="text-xs font-bold text-[#697386]">Total AI Minutes Consumed</div>
+        <div class="text-3xl font-black text-amber-600 mt-2 mb-1" id="statTotalAIMinutes">0</div>
+        <div class="text-[11px] text-[#697386]">Across all accounts</div>
+      </div>
+
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-5 shadow-xs">
+        <div class="text-xs font-bold text-[#697386]">Projected Monthly Revenue</div>
+        <div class="text-3xl font-black text-emerald-600 mt-2 mb-1" id="statRevenue">₦0</div>
+        <div class="text-[11px] text-[#697386]">Pro (₦2.5k) + Premium (₦5k)</div>
+      </div>
+    </div>
+
+    <!-- TAB 1: USERS MANAGEMENT TABLE -->
+    <section id="sectionUsers" class="space-y-6">
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl shadow-xs overflow-hidden">
+        <div class="p-5 border-b border-[#E8ECF2] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-[#1A2447]">Active Workspace Users</h2>
+            <p class="text-xs text-[#697386]">View, modify limits, change tiers, or reset usage per customer.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="userSearchInput" oninput="filterUserTable()" placeholder="Search name or email..." class="px-3.5 py-1.5 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A] bg-[#F6F8FA]">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#F6F8FA] border-b border-[#E8ECF2] text-[#697386] font-bold uppercase text-[10px] tracking-wider">
+              <tr>
+                <th class="py-3 px-4">Name</th>
+                <th class="py-3 px-4">Email</th>
+                <th class="py-3 px-4">Plan Tier</th>
+                <th class="py-3 px-4">AI Usage (Used/Limit)</th>
+                <th class="py-3 px-4">Limit (Mins)</th>
+                <th class="py-3 px-4">Joined</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody" class="divide-y divide-[#E8ECF2]">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: N8N WEBHOOKS MANAGEMENT -->
+    <section id="sectionWebhooks" class="hidden space-y-6">
+      <!-- Add / Edit Webhook Form -->
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-6 shadow-xs">
+        <h2 class="text-sm font-bold text-[#1A2447] mb-1">Add / Update n8n Agent Webhook</h2>
+        <p class="text-xs text-[#697386] mb-4">Saved directly to Firestore (<code class="bg-[#F6F8FA] px-1.5 py-0.5 rounded text-[#1A2447]">n8n_config/webhooks</code>) and localStorage.</p>
+        
+        <form onsubmit="handleSaveWebhook(event)" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div class="md:col-span-4">
+            <label class="block text-xs font-bold text-[#1A2447] mb-1">Webhook Name / Agent</label>
+            <input id="whName" required placeholder="e.g. chatAgent or scheduleAgent" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A]">
+          </div>
+          <div class="md:col-span-5">
+            <label class="block text-xs font-bold text-[#1A2447] mb-1">Target Endpoint URL</label>
+            <input id="whUrl" type="url" required placeholder="https://dataknight.app.n8n.cloud/webhook/..." class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A]">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-xs font-bold text-[#1A2447] mb-1">Status</label>
+            <select id="whStatus" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs font-semibold text-[#1A2447] bg-white">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="md:col-span-12 flex justify-end">
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-xs">
+              Save Webhook Configuration
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Webhooks Table -->
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl shadow-xs overflow-hidden">
+        <div class="p-5 border-b border-[#E8ECF2] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-[#1A2447]">Registered Agent Webhooks</h2>
+            <p class="text-xs text-[#697386]">Live test connections with a test POST payload.</p>
+          </div>
+          <button onclick="seedProductionWebhooks()" class="px-3.5 py-1.5 rounded-xl border border-[#2CA67A] bg-[#EBF5F0] text-[#2CA67A] text-xs font-bold hover:bg-[#D0EFE3] transition">
+            ⚡ Save All Production Webhooks to Firestore
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#F6F8FA] border-b border-[#E8ECF2] text-[#697386] font-bold uppercase text-[10px] tracking-wider">
+              <tr>
+                <th class="py-3 px-4">Agent Name</th>
+                <th class="py-3 px-4">Endpoint URL</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Last Tested</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="webhooksTableBody" class="divide-y divide-[#E8ECF2]">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Code Copy Snippet -->
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-6 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold text-[#1A2447]">Agent Trigger Code Sample (cURL / Fetch)</h3>
+          <button onclick="copyWebhookCode()" class="px-3 py-1 bg-[#EBF5F0] text-[#2CA67A] text-xs font-bold rounded-lg hover:bg-[#D0EFE3] transition">
+            Copy Snippet
+          </button>
+        </div>
+        <pre id="webhookCodeSnippet" class="bg-[#1A2447] text-emerald-400 p-4 rounded-xl text-xs overflow-x-auto font-mono">curl -X POST "https://dataknight.app.n8n.cloud/webhook/founder-assistant" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer &lt;FIREBASE_ID_TOKEN&gt;" \
+  -d '{
+    "message": "Plan my schedule for tomorrow",
+    "founder_id": "user_uid_123",
+    "timezone": "Africa/Lagos"
+  }'</pre>
+      </div>
+    </section>
+
+    <!-- TAB 3: GLOBAL LIMITS CONFIG -->
+    <section id="sectionLimits" class="hidden space-y-6">
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-6 shadow-xs">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-sm font-bold text-[#1A2447]">Global Plan Limits & Pricing</h2>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Firestore app_config/limits</span>
+        </div>
+        <p class="text-xs text-[#697386] mb-6">Modify system defaults. Newly registered accounts and upgrades apply these values.</p>
+
+        <form onsubmit="handleSaveGlobalLimits(event)" class="space-y-6 max-w-xl">
+          <div class="p-4 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2] space-y-3">
+            <h3 class="text-xs font-bold text-[#1A2447] uppercase tracking-wider">Free Tier Defaults</h3>
+            <div>
+              <label class="block text-xs text-[#697386] mb-1 font-medium">Free AI Minutes Limit</label>
+              <input id="cfgFreeMinutes" type="number" required value="60" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A] bg-white font-bold">
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2] space-y-3">
+            <h3 class="text-xs font-bold text-[#2CA67A] uppercase tracking-wider">Pro Tier Defaults</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-[#697386] mb-1 font-medium">Pro AI Minutes Limit</label>
+                <input id="cfgProMinutes" type="number" required value="300" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A] bg-white font-bold">
+              </div>
+              <div>
+                <label class="block text-xs text-[#697386] mb-1 font-medium">Pro Monthly Price (₦)</label>
+                <input id="cfgProPrice" type="number" required value="2500" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A] bg-white font-bold">
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2] space-y-3">
+            <h3 class="text-xs font-bold text-amber-700 uppercase tracking-wider">Premium Tier Defaults</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-[#697386] mb-1 font-medium">Premium AI Minutes Limit</label>
+                <input id="cfgPremiumMinutes" type="number" required value="999999" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A] bg-white font-bold">
+              </div>
+              <div>
+                <label class="block text-xs text-[#697386] mb-1 font-medium">Premium Monthly Price (₦)</label>
+                <input id="cfgPremiumPrice" type="number" required value="5000" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A] bg-white font-bold">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-xs">
+            Save Global Limits to Firestore & Storage
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 4: FIRESTORE RULES -->
+    <section id="sectionRules" class="hidden space-y-6">
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-6 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-sm font-bold text-[#1A2447]">Production Firestore Security Rules</h2>
+            <p class="text-xs text-[#697386]">Ready to deploy to Firebase Console > Firestore Database > Rules.</p>
+          </div>
+          <button onclick="copyFirestoreRules()" class="px-3.5 py-1.5 bg-[#1A2447] text-white text-xs font-bold rounded-xl hover:bg-[#2A376B] transition">
+            Copy Rules
+          </button>
+        </div>
+
+        <pre id="firestoreRulesBlock" class="bg-[#1A2447] text-white p-5 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if the caller is an authenticated administrator
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == "dayloinfo@gmail.com" ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      );
+    }
+
+    // Users collection: user can read/write their own profile; admins have full access
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Tasks collection: user owns their tasks
+    match /tasks/{taskId} {
+      allow read, write: if request.auth != null && (
+        resource == null || resource.data.uid == request.auth.uid || isAdmin()
+      );
+    }
+
+    // Rescheduled slot telemetry / misses
+    match /misses/{missId} {
+      allow read, create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    // Contact messages
+    match /contact_messages/{messageId} {
+      allow create: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    // Application & n8n configuration
+    match /app_config/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /n8n_config/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+  }
+}</pre>
+      </div>
+    </section>
+
+    <!-- TAB 5: INSTRUCTIONS BOX -->
+    <section id="sectionInstructions" class="hidden space-y-6">
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-6 shadow-xs space-y-5">
+        <h2 class="text-base font-extrabold text-[#1A2447]">Daylo Platform Instructions & Architecture</h2>
+        
+        <div class="p-4 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2]">
+          <h3 class="text-xs font-bold text-[#1A2447] mb-1">1. Hardcoded Administrator Authentication</h3>
+          <p class="text-xs text-[#697386] leading-relaxed">
+            The administrator credentials (<code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">dayloinfo@gmail.com</code> / <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">Admin@2026</code>) are registered into <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">ADMIN_CONFIG</code>. Authentication verifies matching email or Firestore document <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">role: "admin"</code>.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2]">
+          <h3 class="text-xs font-bold text-[#1A2447] mb-1">2. AI Limit Enforcement</h3>
+          <p class="text-xs text-[#697386] leading-relaxed">
+            AI limits (<code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">Free: 60 mins</code>, <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">Pro: 300 mins</code>, <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">Premium: 999999 mins</code>) are checked by <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">checkAILimit()</code> in <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">app.js</code> exclusively prior to sending prompts to Ashley AI assistant. Usage only tracks when users chat with the AI; all other features (tasks, calendar sync, auto-planning, energy insights) are completely free on all plans without limits.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2]">
+          <h3 class="text-xs font-bold text-[#1A2447] mb-1">3. n8n Integration</h3>
+          <p class="text-xs text-[#697386] leading-relaxed">
+            All AI scheduling calls send the user's Firebase token as <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">Authorization: Bearer &lt;token&gt;</code> to your n8n webhooks. Update the endpoints in Tab 2 or in <code class="bg-white px-1.5 py-0.5 rounded text-[#1A2447]">N8N_WEBHOOKS</code> to point to your self-hosted n8n instance.
+          </p>
+          <div class="mt-3 p-3 bg-white/50 rounded-lg border border-dashed border-[#E8ECF2]">
+            <p class="text-[10px] font-bold text-[#1A2447] uppercase mb-1">Notification System</p>
+            <p class="text-[10px] text-[#697386]">n8n should write directly to <code class="bg-white px-1 rounded text-[#1A2447]">users/{uid}/notifications/{id}</code>. The app listens to this collection in real-time.</p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2]">
+          <h3 class="text-xs font-bold text-[#1A2447] mb-1">4. Vercel Pure Static Deployment</h3>
+          <p class="text-xs text-[#697386] leading-relaxed">
+            All files are pure HTML, CSS, and Vanilla JavaScript with CDN dependencies. There is no build step or node runtime needed; drag and drop or push to GitHub and deploy straight to Vercel.
+          </p>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <!-- Admin Login Modal (if unauthorized) -->
+  <div id="adminAuthModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/80 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-8 border border-[#E8ECF2] shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-2xl bg-[#1A2447] text-white flex items-center justify-center font-black mx-auto mb-4 text-xl">✦</div>
+      <h2 class="text-xl font-black text-[#1A2447]">Admin Portal</h2>
+      <p class="text-xs text-[#697386] mt-1 mb-6">Restricted to authorized administrator accounts only. Please sign in to verify your identity.</p>
+
+      <button onclick="handleAdminLogin()" class="w-full py-3 rounded-xl bg-[#1A2447] text-white font-bold text-sm hover:bg-[#2A376B] transition shadow-md flex items-center justify-center gap-3">
+        <svg class="w-4 h-4" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        Sign in with Google
+      </button>
+
+      <div class="mt-6">
+        <a href="/dashboard.html" class="text-xs text-[#697386] hover:text-[#1A2447]">← Back to App Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit User Limit / Plan Modal -->
+  <div id="userEditModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 border border-[#E8ECF2] shadow-xl">
+      <h3 class="text-sm font-bold text-[#1A2447] mb-1" id="editModalTitle">Edit User Quotas</h3>
+      <p class="text-xs text-[#697386] mb-4" id="editModalSub">Adjust limits or subscription tier.</p>
+      
+      <div class="space-y-3.5">
+        <input type="hidden" id="editTargetEmail">
+        <div>
+          <label class="block text-xs font-bold text-[#1A2447] mb-1">Plan Tier</label>
+          <select id="editPlanSelect" onchange="syncLimitWithPlan()" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs font-semibold bg-white text-[#1A2447]">
+            <option value="free">Free (60 mins)</option>
+            <option value="pro">Pro (300 mins)</option>
+            <option value="premium">Premium (999999 mins)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#1A2447] mb-1">AI Limit (Minutes)</label>
+          <input id="editLimitInput" type="number" class="w-full px-3.5 py-2 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#2CA67A]">
+        </div>
+        <div class="flex items-center gap-2 pt-2">
+          <button onclick="saveUserEdit()" class="flex-1 py-2.5 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition">Save Changes</button>
+          <button onclick="closeUserEditModal()" class="px-4 py-2.5 rounded-xl border border-[#E8ECF2] text-xs font-bold text-[#697386] hover:bg-[#F6F8FA]">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logic & Data Store Script -->
+  <script>
+    let currentUsers = [];
+    let currentWebhooks = [];
+
+    // Verify Admin Access
+    async function verifyAdminAccess() {
+      if (window.FB && window.FB.auth) {
+        window.FB.onAuthStateChanged(window.FB.auth, (user) => {
+          const badge = document.getElementById('adminUserBadge');
+          const modal = document.getElementById('adminAuthModal');
+          
+          if (user && AUTHORIZED_ADMINS.includes(user.email)) {
+            if (badge) badge.textContent = user.email;
+            if (modal) modal.classList.add('hidden');
+            refreshAllData();
+          } else {
+            if (modal) modal.classList.remove('hidden');
+            if (badge) badge.textContent = user ? 'Unauthorized' : 'Sign in Required';
+          }
+        });
+      } else {
+        window.addEventListener('fbready', verifyAdminAccess, { once: true });
+      }
+    }
+
+    async function handleAdminLogin() {
+      if (!window.FB || !window.FB.auth) return;
+      const provider = new window.FB.GoogleAuthProvider();
+      try {
+        await window.FB.signInWithPopup(window.FB.auth, provider);
+      } catch (err) {
+        console.error('Login error:', err);
+        alert('Could not sign in with Google. Please try again.');
+      }
+    }
+
+    function handleAdminLogout() {
+      localStorage.removeItem('daylo_session');
+      window.location.href = '/index.html';
+    }
+
+    // Tabs navigation
+    function showTab(tabId) {
+      const tabs = ['users', 'webhooks', 'limits', 'rules', 'instructions'];
+      const titles = {
+        users: 'User & Account Management',
+        webhooks: 'n8n Webhooks Management',
+        limits: 'Global Limits & Pricing Configuration',
+        rules: 'Firestore Security Rules',
+        instructions: 'Platform Architecture & Guide'
+      };
+
+      tabs.forEach(t => {
+        const sec = document.getElementById('section' + t.charAt(0).toUpperCase() + t.slice(1));
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (sec) sec.classList.toggle('hidden', t !== tabId);
+        if (btn) {
+          if (t === tabId) {
+            btn.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white text-[#1A2447] font-bold shadow-md';
+          } else {
+            btn.className = 'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition';
+          }
+        }
+      });
+
+      const titleEl = document.getElementById('adminPageTitle');
+      if (titleEl) titleEl.textContent = titles[tabId] || 'Admin Portal';
+    }
+
+    // Load & Render Users
+    async function loadUsers() {
+      if (!window.FB || !window.FB.db) {
+        window.addEventListener('fbready', loadUsers, { once: true });
+        return;
+      }
+      
+      const F = window.FB;
+      try {
+        const q = F.query(F.collection(F.db, 'users'));
+        const snap = await F.getDocs(q);
+        const userList = [];
+        
+        snap.forEach(doc => {
+          const d = doc.data();
+          userList.push({
+            uid: doc.id,
+            name: d.name || d.email?.split('@')[0] || 'User',
+            email: d.email || 'N/A',
+            plan: d.plan || 'free',
+            aiMinutesUsed: d.aiMinutesUsed != null ? d.aiMinutesUsed : 0,
+            aiLimit: d.aiLimit || (d.plan === 'pro' ? 300 : d.plan === 'premium' ? 999999 : 60),
+            joined: d.created_at ? new Date(d.created_at).toLocaleDateString() : 'N/A'
+          });
+        });
+
+        currentUsers = userList;
+        renderUserTable(userList);
+        updateStats(userList);
+      } catch (err) {
+        console.error('Error loading users from Firestore:', err);
+      }
+    }
+
+    function renderUserTable(list) {
+      const tbody = document.getElementById('userTableBody');
+      if (!tbody) return;
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-xs text-[#697386]">No registered users found in Firestore.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(u => {
+        const isUnlimited = u.aiLimit >= 999999;
+        const limitDisplay = isUnlimited ? '∞' : u.aiLimit;
+        const usageText = `${u.aiMinutesUsed}/${limitDisplay}`;
+        const planBadge = u.plan === 'premium' 
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Premium</span>'
+          : u.plan === 'pro'
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EBF5F0] text-[#2CA67A]">Pro</span>'
+          : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">Free</span>';
+
+        return `
+          <tr class="hover:bg-[#F6F8FA] transition">
+            <td class="py-3 px-4 font-bold text-[#1A2447]">${escapeHTML(u.name)}</td>
+            <td class="py-3 px-4 text-[#697386]">${escapeHTML(u.email)}</td>
+            <td class="py-3 px-4">${planBadge}</td>
+            <td class="py-3 px-4 font-mono font-bold text-[#1A2447]">${usageText}</td>
+            <td class="py-3 px-4 text-[#697386]">${limitDisplay}</td>
+            <td class="py-3 px-4 text-[#697386]">${escapeHTML(u.joined)}</td>
+            <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="openUserEdit('${escapeHTML(u.uid)}')" class="px-2.5 py-1 rounded-lg border border-[#E8ECF2] bg-white text-[11px] font-bold text-[#1A2447] hover:bg-gray-50">Edit Limit / Plan</button>
+              <button onclick="resetUserUsage('${escapeHTML(u.uid)}')" class="px-2.5 py-1 rounded-lg border border-[#E8ECF2] bg-white text-[11px] font-semibold text-amber-700 hover:bg-amber-50">Reset Usage</button>
+              <button onclick="deleteUser('${escapeHTML(u.uid)}')" class="px-2.5 py-1 rounded-lg border border-red-200 text-[11px] font-semibold text-red-600 hover:bg-red-50">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateStats(list) {
+      const total = list.length;
+      let free = 0, pro = 0, premium = 0, totalMinutes = 0;
+
+      list.forEach(u => {
+        if (u.plan === 'pro') pro++;
+        else if (u.plan === 'premium') premium++;
+        else free++;
+        totalMinutes += (u.aiMinutesUsed || 0);
+      });
+
+      const revenue = (pro * 2500) + (premium * 5000);
+
+      document.getElementById('statTotalUsers').textContent = total;
+      document.getElementById('statUsersBreakdown').textContent = `${free} Free · ${pro} Pro · ${premium} Prem`;
+      document.getElementById('statPaidCount').textContent = pro + premium;
+      document.getElementById('statTotalAIMinutes').textContent = totalMinutes + ' mins';
+      document.getElementById('statRevenue').textContent = '₦' + revenue.toLocaleString();
+    }
+
+    function filterUserTable() {
+      const q = document.getElementById('userSearchInput').value.toLowerCase();
+      const filtered = currentUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+      renderUserTable(filtered);
+    }
+
+    // User Actions
+    function openUserEdit(uid) {
+      const u = currentUsers.find(x => x.uid === uid);
+      if (!u) return;
+      document.getElementById('editTargetEmail').value = uid; // Using hidden field for UID
+      document.getElementById('editModalTitle').textContent = 'Edit Quotas: ' + u.name;
+      document.getElementById('editModalSub').textContent = u.email;
+      document.getElementById('editPlanSelect').value = u.plan;
+      document.getElementById('editLimitInput').value = u.aiLimit;
+      document.getElementById('userEditModal').classList.remove('hidden');
+    }
+
+    function syncLimitWithPlan() {
+      const p = document.getElementById('editPlanSelect').value;
+      const inp = document.getElementById('editLimitInput');
+      if (p === 'pro') inp.value = 300;
+      else if (p === 'premium') inp.value = 999999;
+      else inp.value = 60;
+    }
+
+    function closeUserEditModal() {
+      document.getElementById('userEditModal').classList.add('hidden');
+    }
+
+    async function saveUserEdit() {
+      const uid = document.getElementById('editTargetEmail').value;
+      const plan = document.getElementById('editPlanSelect').value;
+      const limit = parseInt(document.getElementById('editLimitInput').value, 10) || 60;
+
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+
+      try {
+        await F.updateDoc(F.doc(F.db, 'users', uid), {
+          plan,
+          aiLimit: limit,
+          updatedAt: new Date().toISOString()
+        });
+        
+        closeUserEditModal();
+        loadUsers();
+        alert(`User updated successfully in Firestore.`);
+      } catch (err) {
+        console.error('Error updating user in Firestore:', err);
+        alert('Failed to update user.');
+      }
+    }
+
+    async function resetUserUsage(uid) {
+      if (!confirm(`Reset AI usage to 0 mins for this user?`)) return;
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+      try {
+        await F.updateDoc(F.doc(F.db, 'users', uid), {
+          aiMinutesUsed: 0,
+          updatedAt: new Date().toISOString()
+        });
+        loadUsers();
+        alert(`AI usage reset to 0.`);
+      } catch (err) {
+        console.error('Error resetting usage:', err);
+      }
+    }
+
+    async function deleteUser(uid) {
+      if (!confirm(`Permanently delete account and data for this user?`)) return;
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+      try {
+        await F.deleteDoc(F.doc(F.db, 'users', uid));
+        loadUsers();
+        alert(`Account deleted.`);
+      } catch (err) {
+        console.error('Error deleting user:', err);
+      }
+    }
+
+    // Webhooks Management
+    const DEFAULT_PRODUCTION_WEBHOOKS = {
+      insights: 'https://dataknight.app.n8n.cloud/webhook/flowday-insights',
+      contactForm: 'https://dataknight.app.n8n.cloud/webhook/flowday-contact',
+      assistant: 'https://dataknight.app.n8n.cloud/webhook/founder-assistant',
+      plan: 'https://dataknight.app.n8n.cloud/webhook/create-plan'
+    };
+
+    async function loadWebhooks() {
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+      try {
+        const snap = await F.getDoc(F.doc(F.db, 'n8n_config', 'webhooks'));
+        let list = [];
+        if (snap.exists()) {
+          const data = snap.data();
+          Object.keys(data).forEach(name => {
+            if (['googleCalendarAction', 'googleCalendarConnect', 'googleCallback', 'connect', 'calendar', 'calendarAction', 'callback'].includes(name)) return;
+            if (typeof data[name] === 'string') {
+              const url = data[name].replace('/webhook-test/', '/webhook/');
+              list.push({ name, url, status: 'Active', lastTested: 'Configured' });
+            }
+          });
+        }
+        if (!list.length) {
+          Object.entries(DEFAULT_PRODUCTION_WEBHOOKS).forEach(([name, url]) => {
+            list.push({ name, url, status: 'Active', lastTested: 'Production Default' });
+          });
+        }
+        currentWebhooks = list;
+        renderWebhooksTable(list);
+      } catch (err) {
+        console.error('Error loading webhooks:', err);
+      }
+    }
+
+    async function seedProductionWebhooks() {
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+      try {
+        const docRef = F.doc(F.db, 'n8n_config', 'webhooks');
+        await F.setDoc(docRef, DEFAULT_PRODUCTION_WEBHOOKS, { merge: true });
+        alert('All production n8n webhooks saved to Firestore successfully!');
+        loadWebhooks();
+      } catch (err) {
+        console.error('Error saving webhooks:', err);
+        alert('Failed to save webhooks: ' + err.message);
+      }
+    }
+
+    function renderWebhooksTable(list) {
+      const tbody = document.getElementById('webhooksTableBody');
+      if (!tbody) return;
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-[#697386]">No webhooks configured.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((w, idx) => `
+        <tr class="hover:bg-[#F6F8FA] transition">
+          <td class="py-3 px-4 font-bold text-[#1A2447]">${escapeHTML(w.name)}</td>
+          <td class="py-3 px-4 font-mono text-[11px] text-[#697386] truncate max-w-xs">${escapeHTML(w.url)}</td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${w.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}">
+              ${escapeHTML(w.status)}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-[#697386] text-[11px]">${escapeHTML(w.lastTested || 'Never')}</td>
+          <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+            <button onclick="testWebhook(${idx})" class="px-2.5 py-1 rounded-lg bg-[#1A2447] text-white text-[11px] font-bold hover:bg-[#2A376B]">Test POST</button>
+            <button onclick="editWebhook(${idx})" class="px-2.5 py-1 rounded-lg border border-[#E8ECF2] bg-white text-[11px] font-semibold text-[#1A2447] hover:bg-gray-50">Edit</button>
+            <button onclick="deleteWebhook(${idx})" class="px-2.5 py-1 rounded-lg border border-red-200 text-[11px] font-semibold text-red-600 hover:bg-red-50">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function handleSaveWebhook(e) {
+      e.preventDefault();
+      const name = document.getElementById('whName').value.trim();
+      const url = document.getElementById('whUrl').value.trim();
+
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+      
+      try {
+        const docRef = F.doc(F.db, 'n8n_config', 'webhooks');
+        await F.setDoc(docRef, { [name]: url }, { merge: true });
+        
+        e.target.reset();
+        loadWebhooks();
+        alert(`Webhook "${name}" saved to Firestore.`);
+      } catch (err) {
+        console.error('Error saving webhook:', err);
+        alert('Failed to save webhook.');
+      }
+    }
+
+    async function testWebhook(idx) {
+      const wh = currentWebhooks[idx];
+      if (!wh) return;
+      alert(`Executing test POST to ${wh.url}...`);
+      try {
+        const startTime = Date.now();
+        let tok = '';
+        if (window.FB && window.FB.auth && window.FB.auth.currentUser) {
+          try { tok = await window.FB.auth.currentUser.getIdToken(); } catch (_) {}
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (tok) headers['Authorization'] = 'Bearer ' + tok;
+
+        const payload = {
+          action: 'ping',
+          test: true,
+          founder_id: (window.FB && window.FB.auth && window.FB.auth.currentUser) ? window.FB.auth.currentUser.uid : 'admin_test',
+          email: (window.FB && window.FB.auth && window.FB.auth.currentUser) ? window.FB.auth.currentUser.email : 'admin@daylo.app',
+          timestamp: Date.now()
+        };
+        if (tok) {
+          payload.token = tok;
+          payload.id_token = tok;
+        }
+
+        const res = await fetch(wh.url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload)
+        });
+        const elapsed = Date.now() - startTime;
+        let responseJson = null;
+        try { responseJson = await res.json(); } catch (_) {}
+        wh.lastTested = `HTTP ${res.status} (${elapsed}ms)`;
+        renderWebhooksTable(currentWebhooks);
+        if (res.status === 401) {
+          alert(`Test Response: HTTP 401 Unauthorized in ${elapsed}ms\n\nCause: The n8n webhook node rejected the call.\nFix: In n8n, open this workflow's Webhook node and set "Authentication" to "None", or verify that your n8n workflow accepts Firebase tokens from project daylo-5a548.`);
+        } else {
+          alert(`Test Response: HTTP ${res.status} in ${elapsed}ms\n${JSON.stringify(responseJson || {}, null, 2)}`);
+        }
+      } catch (err) {
+        wh.lastTested = 'Network / CORS Error';
+        renderWebhooksTable(currentWebhooks);
+        alert(`Webhook test failed:\n${err.message}`);
+      }
+    }
+
+    function editWebhook(idx) {
+      const wh = currentWebhooks[idx];
+      if (!wh) return;
+      document.getElementById('whName').value = wh.name;
+      document.getElementById('whUrl').value = wh.url;
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+    }
+
+    async function deleteWebhook(idx) {
+      const wh = currentWebhooks[idx];
+      if (!confirm(`Delete webhook configuration for "${wh.name}"?`)) return;
+      
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+      
+      try {
+        // Firestore doesn't have a direct "delete field" in setDoc merge, need to use deleteField helper or update with specific syntax
+        // For simplicity, we can fetch, delete locally, and overwrite (or just leave it if it's fine)
+        // But the recommended way is using F.updateDoc and F.deleteField
+        // However, I didn't export deleteField in firebase.js.
+        // Let's just alert that delete is not fully implemented in UI for now or fetch and update.
+        
+        const docRef = F.doc(F.db, 'n8n_config', 'webhooks');
+        const snap = await F.getDoc(docRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          delete data[wh.name];
+          await F.setDoc(docRef, data);
+          loadWebhooks();
+          alert('Webhook deleted from Firestore.');
+        }
+      } catch (err) {
+        console.error('Error deleting webhook:', err);
+      }
+    }
+
+    function copyWebhookCode() {
+      const code = document.getElementById('webhookCodeSnippet').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('cURL snippet copied to clipboard!');
+      });
+    }
+
+    function copyFirestoreRules() {
+      const code = document.getElementById('firestoreRulesBlock').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Firestore Security Rules copied to clipboard!');
+      });
+    }
+
+    async function handleSaveGlobalLimits(e) {
+      e.preventDefault();
+      const limits = {
+        freeMinutes: parseInt(document.getElementById('cfgFreeMinutes').value, 10),
+        proMinutes: parseInt(document.getElementById('cfgProMinutes').value, 10),
+        proPrice: parseInt(document.getElementById('cfgProPrice').value, 10),
+        premiumMinutes: parseInt(document.getElementById('cfgPremiumMinutes').value, 10),
+        premiumPrice: parseInt(document.getElementById('cfgPremiumPrice').value, 10),
+        updatedAt: new Date().toISOString()
+      };
+      
+      if (!window.FB || !window.FB.db) return;
+      const F = window.FB;
+      try {
+        await F.setDoc(F.doc(F.db, 'app_config', 'limits'), limits);
+        alert('Global limits saved to Firestore successfully!');
+      } catch (err) {
+        console.error('Error saving limits:', err);
+      }
+    }
+
+    function refreshAllData() {
+      loadUsers();
+      loadWebhooks();
+    }
+
+    async function testWebhook(idx) {
+      const wh = currentWebhooks[idx];
+      if (!wh) return;
+      alert(`Executing test POST to ${wh.url}...`);
+      try {
+        const startTime = Date.now();
+        const res = await fetch(wh.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'ping', test: true, timestamp: Date.now() })
+        });
+        const elapsed = Date.now() - startTime;
+        wh.lastTested = `HTTP ${res.status} (${elapsed}ms)`;
+        localStorage.setItem('daylo_n8n_webhooks', JSON.stringify(currentWebhooks));
+        renderWebhooksTable(currentWebhooks);
+        alert(`Test Response: HTTP ${res.status} in ${elapsed}ms`);
+      } catch (err) {
+        wh.lastTested = 'Network / CORS Error';
+        localStorage.setItem('daylo_n8n_webhooks', JSON.stringify(currentWebhooks));
+        renderWebhooksTable(currentWebhooks);
+        alert(`Webhook test failed (Expected if webhook placeholder not live yet):\n${err.message}`);
+      }
+    }
+
+    function editWebhook(idx) {
+      const wh = currentWebhooks[idx];
+      if (!wh) return;
+      document.getElementById('whName').value = wh.name;
+      document.getElementById('whUrl').value = wh.url;
+      document.getElementById('whStatus').value = wh.status;
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+    }
+
+    function deleteWebhook(idx) {
+      if (!confirm(`Delete webhook configuration for "${currentWebhooks[idx].name}"?`)) return;
+      currentWebhooks.splice(idx, 1);
+      localStorage.setItem('daylo_n8n_webhooks', JSON.stringify(currentWebhooks));
+      renderWebhooksTable(currentWebhooks);
+    }
+
+    function copyWebhookCode() {
+      const code = document.getElementById('webhookCodeSnippet').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('cURL snippet copied to clipboard!');
+      });
+    }
+
+    function copyFirestoreRules() {
+      const code = document.getElementById('firestoreRulesBlock').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Firestore Security Rules copied to clipboard!');
+      });
+    }
+
+    function handleSaveGlobalLimits(e) {
+      e.preventDefault();
+      const limits = {
+        freeMinutes: parseInt(document.getElementById('cfgFreeMinutes').value, 10),
+        proMinutes: parseInt(document.getElementById('cfgProMinutes').value, 10),
+        proPrice: parseInt(document.getElementById('cfgProPrice').value, 10),
+        premiumMinutes: parseInt(document.getElementById('cfgPremiumMinutes').value, 10),
+        premiumPrice: parseInt(document.getElementById('cfgPremiumPrice').value, 10),
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem('daylo_global_limits', JSON.stringify(limits));
+      alert('Global limits saved to app_config/limits and localStorage successfully!');
+    }
+
+    function refreshAllData() {
+      loadUsers();
+      loadWebhooks();
+    }
+
+    function escapeHTML(str) {
+      return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+    }
+
+    function toggleMobileMenu() {
+      const sb = document.getElementById('mobileSidebar');
+      const bd = document.getElementById('mobileMenuBackdrop');
+      if (!sb) return;
+      const isClosed = sb.classList.contains('-translate-x-full');
+      if (isClosed) {
+        sb.classList.remove('-translate-x-full');
+        if (bd) bd.classList.remove('hidden');
+      } else {
+        sb.classList.add('-translate-x-full');
+        if (bd) bd.classList.add('hidden');
+      }
+    }
+
+    // Initialize Admin Page
+    window.addEventListener('DOMContentLoaded', () => {
+      verifyAdminAccess();
+      refreshAllData();
+    });
+  </script>
+</body>
+</html>

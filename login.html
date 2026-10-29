@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daylo - Log In</title>
+  <meta name="description" content="Log in to your Daylo account to access your adaptive workday schedule.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-[#F3FDF8] min-h-screen flex items-center justify-center p-4 sm:p-6 font-sans text-[#172033]">
+  <div class="bg-white border border-[#E8ECF2] rounded-3xl p-6 sm:p-10 max-w-md w-full shadow-2xl animate-slide-up" id="loginCard">
+    <!-- Brand Header -->
+    <a href="/index.html" class="flex items-center gap-2.5 mb-6 inline-flex transition transform hover:scale-105">
+      <img src="/public/assets/aistudio/DAYLO_LOGO_2_4c8752d3.png" alt="Daylo Logo" class="h-8 w-auto object-contain">
+    </a>
+
+    <h1 class="text-2xl font-black text-[#1A2447] mb-1">Welcome back to Daylo</h1>
+    <p class="text-xs text-[#697386] mb-6">Enter your details to access your smart schedule and Ashley AI.</p>
+
+    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label for="authEmail" class="block text-xs font-bold text-[#1A2447] mb-1.5">Email address</label>
+        <input id="authEmail" type="email" required autocomplete="email" placeholder="you@company.com" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#1A2447] focus:ring-2 focus:ring-[#1A2447]/10 bg-white transition">
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="authPass" class="block text-xs font-bold text-[#1A2447]">Password</label>
+          <a href="javascript:void(0)" class="text-[11px] font-semibold text-[#2CA67A] hover:underline cursor-pointer" onclick="handleForgotPassword()">Forgot password?</a>
+        </div>
+        <div class="relative flex items-center">
+          <input id="authPass" type="password" required autocomplete="current-password" placeholder="••••••••" class="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#1A2447] focus:ring-2 focus:ring-[#1A2447]/10 bg-white transition">
+          <button type="button" onclick="togglePasswordVisibility('authPass', this)" class="absolute right-3.5 text-gray-400 hover:text-[#1A2447] focus:outline-none p-1 cursor-pointer transition">
+            <svg id="eyeSvg1" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="errMsg" class="text-xs text-red-500 font-medium min-h-4"></div>
+
+      <button id="submitBtn" class="w-full py-3 rounded-xl bg-[#1A2447] text-white font-bold text-xs hover:bg-[#2A376B] transition-all transform hover:-translate-y-0.5 shadow-md cursor-pointer" type="submit">
+        Log In
+      </button>
+    </form>
+
+    <!-- Social Auth Divider -->
+    <div class="my-5 flex items-center gap-3">
+      <div class="flex-1 h-px bg-[#E8ECF2]"></div>
+      <span class="text-[11px] text-[#697386] uppercase font-semibold">or</span>
+      <div class="flex-1 h-px bg-[#E8ECF2]"></div>
+    </div>
+
+    <!-- Google Sign In -->
+    <button onclick="handleGoogleLogin()" type="button" class="w-full py-2.5 rounded-xl border border-[#E8ECF2] text-xs font-bold text-[#1A2447] hover:bg-[#F6F8FA] transition flex items-center justify-center gap-2.5 shadow-xs cursor-pointer">
+      <svg class="w-4 h-4 flex-none" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <div class="mt-6 pt-5 border-t border-[#E8ECF2] text-center text-xs text-[#697386]">
+      Don't have an account yet?
+      <a href="/signup.html" class="text-[#2CA67A] font-bold ml-1 hover:underline">Create account</a>
+    </div>
+
+    <div class="mt-3 text-center">
+      <a href="/index.html" class="text-xs text-[#697386] hover:text-[#1A2447]">← Back to home</a>
+    </div>
+  </div>
+
+  <script type="module" src="/firebase.js"></script>
+  <script>
+    function togglePasswordVisibility(fieldId, btn) {
+      const input = document.getElementById(fieldId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`;
+      } else {
+        input.type = 'password';
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+      }
+    }
+
+    async function handleGoogleLogin() {
+      try {
+        let fb = window.FB;
+        if (!fb || !fb.ok) {
+          await new Promise(r => setTimeout(r, 600));
+          fb = window.FB;
+        }
+
+        if (fb && fb.ok && fb.signInWithPopup) {
+          const provider = new fb.GoogleAuthProvider();
+          provider.addScope('https://www.googleapis.com/auth/calendar.events');
+          const res = await fb.signInWithPopup(fb.auth, provider);
+          
+          try {
+            const cred = fb.GoogleAuthProvider.credentialFromResult(res);
+            if (cred && cred.accessToken) {
+              sessionStorage.setItem('daylo_gcal_token', cred.accessToken);
+            }
+          } catch (_) {}
+          
+          let rawName = res.user.displayName || res.user.email.split('@')[0];
+          let formattedFullName = rawName.split(/\s+/).map(w => {
+                let clean = w.replace(/[^a-zA-Z]/g, '');
+                return clean ? clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase() : '';
+              }).filter(Boolean).join(' ') || 'User';
+
+          const userObj = { name: formattedFullName, email: res.user.email, uid: res.user.uid };
+          localStorage.setItem('daylo_session', JSON.stringify(userObj));
+          
+          // Sync with Firestore
+          if (fb.db && fb.setDoc) {
+            try {
+              await fb.setDoc(fb.doc(fb.db, 'users', res.user.uid), {
+                name: formattedFullName,
+                email: res.user.email,
+                // These are merged, so they won't overwrite if they exist
+                role: ['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(res.user.email) ? 'admin' : 'user',
+              }, { merge: true });
+            } catch (err) {
+              console.warn('Could not sync Google user to Firestore:', err);
+            }
+          }
+
+          if (['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(res.user.email)) {
+            window.location.href = '/admin.html';
+          } else {
+            window.location.href = '/dashboard.html';
+          }
+        }
+      } catch (error) {
+        console.error('Google login error:', error);
+        document.getElementById('errMsg').textContent = "Google login failed. Please try again.";
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('authPass').value;
+      const err = document.getElementById('errMsg');
+      const btn = document.getElementById('submitBtn');
+
+      err.textContent = '';
+      btn.disabled = true;
+
+      try {
+        let fb = window.FB;
+        if (!fb || !fb.ok) {
+          await new Promise(r => setTimeout(r, 600));
+          fb = window.FB;
+        }
+
+        if (fb && fb.ok && fb.signInWithEmailAndPassword) {
+          const cred = await fb.signInWithEmailAndPassword(fb.auth, email, pass);
+          
+          let storedName = '';
+          try {
+            const uMap = JSON.parse(localStorage.getItem('daylo_users') || '{}');
+            if (uMap[email] && uMap[email].name) storedName = uMap[email].name;
+          } catch (_) {}
+
+          let rawName = cred.user.displayName || storedName;
+          if (!rawName || rawName.includes('@')) {
+            rawName = email.split('@')[0];
+          }
+          let formattedFullName = rawName.split(/\s+/).map(w => {
+                let clean = w.replace(/[^a-zA-Z]/g, '');
+                return clean ? clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase() : '';
+              }).filter(Boolean).join(' ') || 'User';
+
+          const userObj = { name: formattedFullName, email: cred.user.email, uid: cred.user.uid };
+          localStorage.setItem('daylo_session', JSON.stringify(userObj));
+
+          // Sync with Firestore
+          if (fb.db && fb.setDoc) {
+            try {
+              await fb.setDoc(fb.doc(fb.db, 'users', cred.user.uid), {
+                name: formattedFullName,
+                email: cred.user.email,
+                role: ['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(cred.user.email) ? 'admin' : 'user',
+              }, { merge: true });
+            } catch (err) {
+              console.warn('Could not sync user to Firestore:', err);
+            }
+          }
+
+          if (!cred.user.emailVerified) {
+            // Friendly notice allowing them to proceed or resend verification
+            showVerificationScreen(email, cred.user);
+            return;
+          }
+
+          if (['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(cred.user.email)) {
+            window.location.href = '/admin.html';
+          } else {
+            window.location.href = '/dashboard.html';
+          }
+          return;
+        } else {
+          let storedName = '';
+          try {
+            const uMap = JSON.parse(localStorage.getItem('daylo_users') || '{}');
+            if (uMap[email] && uMap[email].name) storedName = uMap[email].name;
+          } catch (_) {}
+
+          let rawName = storedName || email.split('@')[0];
+          let formattedFullName = rawName.split(/\s+/).map(w => {
+                let clean = w.replace(/[^a-zA-Z]/g, '');
+                return clean ? clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase() : '';
+              }).filter(Boolean).join(' ') || 'User';
+
+          const userObj = { name: formattedFullName, email, uid: 'uid_' + Date.now() };
+          localStorage.setItem('daylo_session', JSON.stringify(userObj));
+          window.location.href = '/dashboard.html';
+          return;
+        }
+      } catch (error) {
+        console.error('Firebase login error:', error);
+        btn.disabled = false;
+        const code = error.code || '';
+        if (code === 'auth/user-not-found') {
+          err.innerHTML = 'No account found with this email. <a href="/signup.html" class="underline font-bold text-[#1A2447]">Create an account</a> or try <b>Continue with Google</b>.';
+        } else if (code === 'auth/wrong-password') {
+          err.innerHTML = 'Incorrect password. <a href="javascript:void(0)" onclick="handleForgotPassword()" class="underline font-bold text-[#2CA67A]">Reset password?</a>';
+        } else if (code === 'auth/invalid-credential') {
+          err.innerHTML = 'Incorrect password, or this account was registered with Google. Try <b>Continue with Google</b> below, or <a href="javascript:void(0)" onclick="handleForgotPassword()" class="underline font-bold text-[#2CA67A]">Reset Password</a>.';
+        } else if (code === 'auth/too-many-requests') {
+          err.innerHTML = 'Access temporarily disabled due to multiple failed attempts. <a href="javascript:void(0)" onclick="handleForgotPassword()" class="underline font-bold text-[#2CA67A]">Reset password</a> to access immediately, or try again in a few minutes.';
+        } else if (code === 'auth/operation-not-allowed') {
+          err.innerHTML = 'Email sign-in is verifying your project. Try <b>Continue with Google</b> below, or <a href="javascript:void(0)" onclick="handleForgotPassword()" class="underline font-bold text-[#2CA67A]">Reset Password</a>.';
+        } else if (code === 'auth/invalid-email') {
+          err.textContent = 'Please enter a valid email address.';
+        } else {
+          err.textContent = error.message || 'Login failed. Please verify your credentials.';
+        }
+      }
+    }
+
+    async function handleForgotPassword() {
+      const emailInput = document.getElementById('authEmail');
+      const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+      const targetEmail = prompt('Enter your account email to receive a password reset link:', email || '');
+      if (!targetEmail) return;
+      if (!/^\S+@\S+\.\S+$/.test(targetEmail)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+      try {
+        let fb = window.FB;
+        if (!fb || !fb.ok) {
+          await new Promise(r => setTimeout(r, 600));
+          fb = window.FB;
+        }
+        if (fb && fb.ok && fb.sendPasswordResetEmail) {
+          await fb.sendPasswordResetEmail(fb.auth, targetEmail);
+          alert('Password reset link sent to ' + targetEmail + '! Please check your inbox and spam folder.');
+        } else {
+          alert('Password reset is not available right now. Please try signing in with Google.');
+        }
+      } catch (err) {
+        console.error('Password reset error:', err);
+        const code = err.code || '';
+        if (code === 'auth/user-not-found') {
+          alert('No account was found with that email address. Please create an account first.');
+        } else if (code === 'auth/too-many-requests') {
+          alert('Too many reset requests sent. Please wait a few moments before trying again.');
+        } else {
+          alert('Could not send reset email: ' + (err.message || 'Please check the email and try again.'));
+        }
+      }
+    }
+
+    function proceedToDashboard() {
+      const emailInput = document.getElementById('authEmail');
+      const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+      if (['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(email)) {
+        window.location.href = '/admin.html';
+      } else {
+        window.location.href = '/dashboard.html';
+      }
+    }
+
+    async function resendVerificationEmail() {
+      try {
+        let fb = window.FB;
+        if (fb && fb.auth && fb.auth.currentUser && fb.sendEmailVerification) {
+          await fb.sendEmailVerification(fb.auth.currentUser);
+          alert('Verification email resent! Check your inbox and spam folder.');
+        } else {
+          const emailInput = document.getElementById('authEmail');
+          const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+          alert('A verification email was already dispatched to ' + (email || 'your email') + '. Please check your inbox or spam folder.');
+        }
+      } catch (e) {
+        alert('Could not resend email: ' + (e.message || 'Please check your inbox or try again shortly.'));
+      }
+    }
+
+    function showVerificationScreen(email, user) {
+      const card = document.getElementById('loginCard');
+      card.innerHTML = `
+        <div class="text-center py-6 space-y-5 animate-slide-up">
+          <div class="w-14 h-14 bg-emerald-50 text-[#2CA67A] rounded-2xl flex items-center justify-center text-2xl mx-auto font-black shadow-xs">✉</div>
+          <h2 class="text-xl font-black text-[#1A2447]">Welcome back!</h2>
+          <p class="text-xs text-[#697386] leading-relaxed">
+            Logged in as <b>${email}</b>.<br>
+            A verification link was previously sent to your inbox. You can verify it anytime or proceed directly to your Daylo dashboard now.
+          </p>
+          <div class="space-y-2 pt-2">
+            <button onclick="proceedToDashboard()" class="w-full py-3 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-md cursor-pointer">
+              Continue to Dashboard →
+            </button>
+            <button onclick="resendVerificationEmail()" class="w-full py-2.5 rounded-xl border border-[#E8ECF2] text-xs font-bold text-[#1A2447] hover:bg-[#F6F8FA] transition cursor-pointer">
+              Resend verification email
+            </button>
+          </div>
+          <div class="pt-2">
+            <a href="/login.html" class="text-xs text-[#697386] hover:underline">← Switch account</a>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

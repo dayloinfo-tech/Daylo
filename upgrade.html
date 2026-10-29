@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daylo - Upgrade Your Plan</title>
+  <meta name="description" content="Choose your Daylo productivity plan with fixed AI limits, smart rescheduling, and priority assistant access.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="/firebase.js"></script>
+</head>
+<body class="bg-[#F3FDF8] font-sans text-[#172033] min-h-screen flex">
+  <!-- Dark Navy Sidebar (#1A2447) permanently visible matching Figma -->
+  <aside class="fixed top-0 bottom-0 left-0 w-12 sm:w-52 md:w-64 bg-[#1A2447] text-white z-40 flex flex-col justify-between p-1.5 sm:p-4 md:p-5 border-r border-[#151D3A] overflow-y-auto">
+    <div>
+      <!-- Brand Logo -->
+      <a href="/dashboard.html" class="flex items-center justify-center sm:justify-start pb-3 sm:pb-6 border-b border-white/10 mb-3 sm:mb-6 cursor-pointer gap-2">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white text-[#1A2447] flex items-center justify-center font-black shadow-sm flex-none text-xs sm:text-base">✦</div>
+        <div class="hidden sm:block">
+          <div class="font-black text-base sm:text-lg tracking-tight text-white leading-none">Daylo</div>
+          <div class="text-[9px] sm:text-[10px] text-white/50 uppercase tracking-widest mt-1">Productivity OS</div>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="space-y-1 sm:space-y-1.5">
+        <a href="/dashboard.html" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition" title="Overview">
+          <span class="text-base sm:text-sm font-bold flex-none">⌂</span>
+          <span class="hidden sm:inline truncate">Overview</span>
+        </a>
+        <a href="/dashboard.html" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition" title="My Tasks">
+          <span class="text-base sm:text-sm font-bold flex-none">✓</span>
+          <span class="hidden sm:inline truncate">My Tasks</span>
+        </a>
+        <a href="/dashboard.html" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition" title="Calendar">
+          <span class="text-base sm:text-sm font-bold flex-none">◷</span>
+          <span class="hidden sm:inline truncate">Calendar</span>
+        </a>
+        <a href="/dashboard.html" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition" title="AI Assistant">
+          <span class="text-base sm:text-sm font-bold flex-none">✦</span>
+          <span class="hidden sm:inline truncate">AI Assistant</span>
+        </a>
+        <a href="/dashboard.html" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition" title="How I Work">
+          <span class="text-base sm:text-sm font-bold flex-none">◌</span>
+          <span class="hidden sm:inline truncate">How I Work</span>
+        </a>
+        <a href="/contact.html" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition" title="Contact Us">
+          <span class="text-base sm:text-sm font-bold flex-none">✉</span>
+          <span class="hidden sm:inline truncate">Contact Us</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sidebar Bottom: Plan Badge, Settings, Profile -->
+    <div class="space-y-2 sm:space-y-3 pt-2 sm:pt-4 border-t border-white/10">
+      <div class="hidden sm:block p-3 rounded-xl bg-white text-[#1A2447] shadow-sm">
+        <div class="flex items-center justify-between text-xs font-bold mb-1">
+          <span>Active Plan</span>
+          <span id="sidePlanBadge" class="text-[10px] text-[#2CA67A] bg-[#EBF5F0] px-2 py-0.5 rounded-full font-extrabold uppercase">Free</span>
+        </div>
+        <div id="sideUsageText" class="text-[11px] text-[#697386]">0 of 60 mins used</div>
+      </div>
+
+      <a href="/dashboard.html" class="w-full flex items-center justify-center sm:justify-start gap-3 px-1.5 sm:px-3.5 py-2 rounded-xl text-xs font-semibold text-white/70 hover:bg-white/10 hover:text-white transition" title="Settings">
+        <span class="text-base sm:text-sm flex-none">⚙</span>
+        <span class="hidden sm:inline">Settings</span>
+      </a>
+
+      <!-- User Profile Chip -->
+      <a href="/dashboard.html" class="w-full flex items-center justify-center sm:justify-start gap-2.5 p-1.5 sm:p-2.5 rounded-xl bg-white text-[#1A2447] shadow-sm text-left transition hover:bg-gray-50" title="Profile">
+        <div id="sideUserAvatar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#1A2447] text-white font-black text-xs flex items-center justify-center flex-none shadow-xs">
+          D
+        </div>
+        <div class="hidden sm:block min-w-0 flex-1">
+          <div id="sideUserName" class="text-xs font-bold text-[#1A2447] truncate">Daylo User</div>
+          <div id="sideUserEmail" class="text-[10px] text-[#697386] truncate">Workspace</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Area -->
+  <main class="ml-12 sm:ml-52 md:ml-64 flex-1 flex flex-col min-w-0">
+    <!-- Topbar -->
+    <header class="h-14 sm:h-18 border-b border-[#E8ECF2] sticky top-0 z-20 flex items-center justify-between px-2.5 sm:px-8 bg-cover bg-center" style="background-image: url('/public/assets/aistudio/Frame_388_a7211cc4.png');">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <h2 class="text-xs sm:text-lg font-bold text-[#1A2447] truncate">Pricing Plans</h2>
+        <span class="hidden sm:inline text-xs text-[#697386]">·</span>
+        <span class="hidden sm:inline text-xs text-[#697386] truncate">Upgrade or change limits</span>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="/dashboard.html" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-[#1A2447] text-white text-[10px] sm:text-xs font-bold hover:bg-[#2A376B] transition shadow-xs">
+          ← Dashboard
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Pricing Body -->
+    <div class="p-3.5 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6 sm:space-y-8">
+      <div class="text-center max-w-2xl mx-auto">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EBF5F0] text-[#2CA67A] mb-3">
+          ✦ Simple, Transparent Pricing
+        </span>
+        <h1 class="text-2xl sm:text-4xl font-black text-[#1A2447] tracking-tight">Ashley AI Chat Plans</h1>
+        <p class="text-[#697386] text-xs sm:text-sm mt-2">Choose the plan that matches your workday tempo. Upgrade or downgrade instantly.</p>
+        
+        <div class="mt-3 p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-2 text-xs font-semibold text-left">
+          <span>✨</span>
+          <span><b>All Core Features Free:</b> Task management, autonomous auto-planning, calendar sync, and energy insights are 100% free without limits on all plans. Usage limits only apply to chatting with Ashley AI.</span>
+        </div>
+
+        <!-- Current Status Banner -->
+        <div id="currentPlanStatus" class="mt-4 inline-flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-[#E8ECF2] text-xs font-semibold text-[#1A2447] shadow-xs">
+          <span>Loading current plan…</span>
+        </div>
+      </div>
+
+      <!-- 3 Pricing Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
+        <!-- Free Card -->
+        <div id="cardFree" class="bg-white border border-[#E8ECF2] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xs hover:border-[#1A2447]/30 transition">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-lg text-[#1A2447]">Free</h3>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">Starter</span>
+            </div>
+            <div class="text-3xl font-black text-[#1A2447] mb-1">₦0</div>
+            <p class="text-xs text-[#697386] mb-6">Forever free for individual productivity</p>
+            <div class="h-px bg-[#E8ECF2] mb-6"></div>
+            <ul class="space-y-3 text-xs text-[#172033] mb-8">
+              <li class="flex items-center gap-2.5"><span class="text-emerald-500 font-bold">✓</span> <b>60 mins</b> Ashley AI Chat / month</li>
+              <li class="flex items-center gap-2.5"><span class="text-emerald-500 font-bold">✓</span> <b>90 messages</b> with Ashley AI</li>
+              <li class="flex items-center gap-2.5"><span class="text-emerald-500 font-bold">✓</span> <b>Unlimited tasks</b> (100% free)</li>
+              <li class="flex items-center gap-2.5"><span class="text-emerald-500 font-bold">✓</span> <b>Unlimited Auto-Planning</b> (100% free)</li>
+              <li class="flex items-center gap-2.5"><span class="text-emerald-500 font-bold">✓</span> Live Google Calendar integration</li>
+              <li class="flex items-center gap-2.5"><span class="text-emerald-500 font-bold">✓</span> Mathematical urgency scoring</li>
+            </ul>
+          </div>
+          <button id="btnFree" onclick="applyPlan('free')" class="w-full py-3 rounded-xl text-xs font-bold border border-[#E8ECF2] bg-gray-50 text-[#697386] hover:bg-gray-100 transition cursor-pointer">
+            Select Free Plan
+          </button>
+        </div>
+
+        <!-- Pro Card (Highlighted) -->
+        <div id="cardPro" class="bg-white border-2 border-[#1A2447] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl relative ring-4 ring-[#1A2447]/10">
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#1A2447] text-white text-[10px] font-black uppercase tracking-widest px-3.5 py-1 rounded-full shadow-sm">
+            Most Popular
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-lg text-[#1A2447]">Pro</h3>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBF5F0] text-[#2CA67A]">Recommended</span>
+            </div>
+            <div class="text-3xl font-black text-[#1A2447] mb-1">₦2,500 <span class="text-xs font-semibold text-[#697386]">/ month</span></div>
+            <p class="text-xs text-[#697386] mb-6">For founders, creators & high-output pros</p>
+            <div class="h-px bg-[#E8ECF2] mb-6"></div>
+            <ul class="space-y-3 text-xs text-[#172033] mb-8">
+              <li class="flex items-center gap-2.5"><span class="text-[#2CA67A] font-bold">✓</span> <b>300 mins</b> Ashley AI Chat / month</li>
+              <li class="flex items-center gap-2.5"><span class="text-[#2CA67A] font-bold">✓</span> <b>450 messages</b> with Ashley AI</li>
+              <li class="flex items-center gap-2.5"><span class="text-[#2CA67A] font-bold">✓</span> <b>Unlimited tasks & auto-planning</b></li>
+              <li class="flex items-center gap-2.5"><span class="text-[#2CA67A] font-bold">✓</span> Live Google Calendar bidirectional sync</li>
+              <li class="flex items-center gap-2.5"><span class="text-[#2CA67A] font-bold">✓</span> Personalized peak hours learning</li>
+            </ul>
+          </div>
+          <button id="btnPro" onclick="applyPlan('pro')" class="w-full py-3 rounded-xl text-xs font-bold text-white bg-[#1A2447] hover:bg-[#2A376B] transition shadow-md shadow-[#1A2447]/20 cursor-pointer">
+            Upgrade to Pro (₦2,500/mo)
+          </button>
+        </div>
+
+        <!-- Premium Card -->
+        <div id="cardPremium" class="bg-white border border-[#E8ECF2] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xs hover:border-amber-400/60 transition">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-lg text-[#1A2447]">Premium</h3>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Unlimited</span>
+            </div>
+            <div class="text-3xl font-black text-[#1A2447] mb-1">₦5,000 <span class="text-xs font-semibold text-[#697386]">/ month</span></div>
+            <p class="text-xs text-[#697386] mb-6">For agencies, executives & power users</p>
+            <div class="h-px bg-[#E8ECF2] mb-6"></div>
+            <ul class="space-y-3 text-xs text-[#172033] mb-8">
+              <li class="flex items-center gap-2.5"><span class="text-amber-500 font-bold">✓</span> <b>Unlimited Ashley AI Chat (999,999 mins)</b></li>
+              <li class="flex items-center gap-2.5"><span class="text-amber-500 font-bold">✓</span> <b>Unlimited Ashley chat messages</b></li>
+              <li class="flex items-center gap-2.5"><span class="text-amber-500 font-bold">✓</span> <b>Unlimited tasks & auto-planning</b></li>
+              <li class="flex items-center gap-2.5"><span class="text-amber-500 font-bold">✓</span> Multi-calendar accounts support</li>
+              <li class="flex items-center gap-2.5"><span class="text-amber-500 font-bold">✓</span> Dedicated WhatsApp & email priority support</li>
+            </ul>
+          </div>
+          <button id="btnPremium" onclick="applyPlan('premium')" class="w-full py-3 rounded-xl text-xs font-bold text-white bg-[#1A2447] hover:bg-[#2A376B] transition shadow-md cursor-pointer">
+            Get Unlimited Premium (₦5,000/mo)
+          </button>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <div class="max-w-3xl mx-auto bg-white border border-[#E8ECF2] rounded-2xl p-5 sm:p-8 shadow-xs">
+        <h3 class="font-bold text-base text-[#1A2447] mb-4">Frequently Asked Questions</h3>
+        <div class="space-y-4 text-xs">
+          <div>
+            <b class="text-[#1A2447] block mb-1">What counts toward the AI usage limit?</b>
+            <p class="text-[#697386] leading-relaxed">Only direct conversational interactions when chatting with Ashley AI count toward your usage limit. All other Daylo features—including task creation, editing, autonomous auto-planning of your week, calendar sync, and energy insights—are completely free with no limits on all plans.</p>
+          </div>
+          <div>
+            <b class="text-[#1A2447] block mb-1">What currency are prices listed in?</b>
+            <p class="text-[#697386] leading-relaxed">Prices are in Nigerian Naira (₦). Pro is ₦2,500/month and Premium is ₦5,000/month. We accept card, bank transfer, and USSD via Paystack.</p>
+          </div>
+          <div>
+            <b class="text-[#1A2447] block mb-1">Can I switch or cancel my plan at any time?</b>
+            <p class="text-[#697386] leading-relaxed">Yes, you can upgrade, downgrade, or cancel your subscription whenever you wish from your account dashboard with zero hidden fees.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="border-t border-[#E8ECF2] bg-white py-6 text-center text-xs text-[#697386] mt-auto">
+      © 2026 Daylo Productivity OS.
+    </footer>
+  </main>
+
+  <script>
+    function getCleanFirstName(nameStr, emailStr) {
+      let str = String(nameStr || '').trim();
+      let email = String(emailStr || '').trim();
+      if (!str || str.includes('@')) {
+        if (email && email.includes('@')) str = email.split('@')[0];
+      }
+      try {
+        const uMap = JSON.parse(localStorage.getItem('daylo_users') || '{}');
+        if (email && uMap[email.toLowerCase()] && uMap[email.toLowerCase()].name) {
+          const saved = uMap[email.toLowerCase()].name.trim();
+          if (saved && !saved.includes('@')) str = saved;
+        }
+      } catch (e) {}
+      if (str.toLowerCase().includes('dayloinfo') || str.toLowerCase().includes('daylo')) return 'Admin';
+      let first = str.split(/[\s._-]+/)[0].replace(/[^a-zA-Z]/g, '');
+      if (!first) return 'User';
+      return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+    }
+
+    const PLAN_LIMITS = {
+      free: { minutes: 60, price: 0, label: 'Free' },
+      pro: { minutes: 300, price: 2500, label: 'Pro' },
+      premium: { minutes: 999999, price: 5000, label: 'Premium' }
+    };
+
+    const PAYSTACK_LINKS = {
+      pro: "https://paystack.shop/pay/ug-96czjsq",
+      premium: "https://paystack.shop/pay/ellh5-mvog"
+    };
+
+    function getCurrentUserKey() {
+      try {
+        const s = JSON.parse(localStorage.getItem('daylo_session') || '{}');
+        return s.email || 'guest';
+      } catch (e) {
+        return 'guest';
+      }
+    }
+
+    function refreshUI() {
+      const email = getCurrentUserKey();
+      let state = { plan: 'free', aiMinutesUsed: 0, aiLimit: 60 };
+      try {
+        const raw = localStorage.getItem('daylo_ai_' + email);
+        if (raw) state = { ...state, ...JSON.parse(raw) };
+        const s = JSON.parse(localStorage.getItem('daylo_session') || '{}');
+        if (s && s.plan && s.plan !== 'free' && state.plan === 'free') {
+          state.plan = s.plan;
+          state.aiLimit = s.aiLimit || (s.plan === 'premium' ? 999999 : 300);
+        }
+      } catch (e) {}
+
+      let firstName = 'User';
+      try {
+        const s = JSON.parse(localStorage.getItem('daylo_session') || '{}');
+        firstName = getCleanFirstName(s.name, s.email);
+        if (document.getElementById('sideUserName')) document.getElementById('sideUserName').textContent = firstName;
+        if (document.getElementById('sideUserEmail')) document.getElementById('sideUserEmail').textContent = s.email || '';
+        if (document.getElementById('sideUserAvatar')) document.getElementById('sideUserAvatar').textContent = firstName.charAt(0).toUpperCase();
+      } catch (e) {}
+
+      const banner = document.getElementById('currentPlanStatus');
+      const isUnlimited = state.aiLimit >= 999999;
+      if (banner) {
+        banner.innerHTML = `
+          <span>Active user: <b>${firstName}</b></span>
+          <span class="text-gray-300">|</span>
+          <span>Current plan: <b class="uppercase ${state.plan === 'premium' ? 'text-amber-700' : state.plan === 'pro' ? 'text-[#2CA67A]' : 'text-[#1A2447]'}">${state.plan} Plan</b></span>
+          <span class="text-gray-300">|</span>
+          <span>Usage: <b>${state.aiMinutesUsed} / ${isUnlimited ? '∞' : state.aiLimit + ' mins'}</b></span>
+        `;
+      }
+
+      const sideBadge = document.getElementById('sidePlanBadge');
+      if (sideBadge) {
+        sideBadge.textContent = state.plan.toUpperCase();
+        sideBadge.className = `text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase ${state.plan === 'premium' ? 'text-amber-800 bg-amber-100' : state.plan === 'pro' ? 'text-[#2CA67A] bg-[#EBF5F0]' : 'text-gray-700 bg-gray-100'}`;
+      }
+      const sideUsage = document.getElementById('sideUsageText');
+      if (sideUsage) sideUsage.textContent = `${state.aiMinutesUsed} of ${isUnlimited ? '∞' : state.aiLimit + 'm'} used`;
+
+      ['free', 'pro', 'premium'].forEach(p => {
+        const btn = document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1));
+        if (btn) {
+          if (state.plan === p) {
+            btn.textContent = 'Active Plan ✓';
+            btn.className = 'w-full py-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default';
+          } else if (p === 'pro') {
+            btn.textContent = 'Upgrade to Pro (₦2,500/mo)';
+            btn.className = 'w-full py-3 rounded-xl text-xs font-bold text-white bg-[#1A2447] hover:bg-[#2A376B] transition shadow-md shadow-[#1A2447]/20 cursor-pointer';
+          } else if (p === 'premium') {
+            btn.textContent = 'Get Unlimited Premium (₦5,000/mo)';
+            btn.className = 'w-full py-3 rounded-xl text-xs font-bold text-white bg-[#1A2447] hover:bg-[#2A376B] transition shadow-md cursor-pointer';
+          } else {
+            btn.textContent = 'Select Free Plan';
+            btn.className = 'w-full py-3 rounded-xl text-xs font-bold border border-[#E8ECF2] bg-gray-50 text-[#697386] hover:bg-gray-100 transition cursor-pointer';
+          }
+        }
+      });
+    }
+
+    async function applyPlan(planKey, options = {}) {
+      const planInfo = PLAN_LIMITS[planKey];
+      if (!planInfo) return;
+
+      const email = getCurrentUserKey();
+      let state = {
+        aiMinutesUsed: 0,
+        aiLimit: planInfo.minutes,
+        totalAIRequests: 0,
+        plan: planKey,
+        email: email,
+        updatedAt: new Date().toISOString()
+      };
+      try {
+        const raw = localStorage.getItem('daylo_ai_' + email);
+        if (raw) state = { ...state, ...JSON.parse(raw) };
+      } catch (e) {}
+
+      state.plan = planKey;
+      state.aiLimit = planInfo.minutes;
+      if (state.aiMinutesUsed > state.aiLimit) state.aiMinutesUsed = 0;
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem('daylo_ai_' + email, JSON.stringify(state));
+
+      // Update session storage & in-memory user
+      try {
+        const s = JSON.parse(localStorage.getItem('daylo_session') || '{}');
+        s.plan = planKey;
+        s.aiLimit = planInfo.minutes;
+        localStorage.setItem('daylo_session', JSON.stringify(s));
+
+        if (email && email !== 'guest') {
+          const uMap = JSON.parse(localStorage.getItem('daylo_users') || '{}');
+          if (!uMap[email.toLowerCase()]) uMap[email.toLowerCase()] = {};
+          uMap[email.toLowerCase()].plan = planKey;
+          uMap[email.toLowerCase()].aiLimit = planInfo.minutes;
+          localStorage.setItem('daylo_users', JSON.stringify(uMap));
+        }
+      } catch (e) {}
+
+      // Attempt remote Firebase sync
+      let uid = null;
+      try {
+        const s = JSON.parse(localStorage.getItem('daylo_session') || '{}');
+        uid = s.uid;
+      } catch (_) {}
+
+      if (window.FB && window.FB.db) {
+        try {
+          const F = window.FB;
+          const authUser = F.auth ? F.auth.currentUser : null;
+          const targetUid = authUser ? authUser.uid : uid;
+          if (targetUid) {
+            await F.setDoc(F.doc(F.db, 'users', targetUid), {
+              plan: planKey,
+              aiLimit: planInfo.minutes,
+              updatedAt: new Date().toISOString()
+            }, { merge: true });
+
+            await F.addDoc(F.collection(F.db, 'users', targetUid, 'notifications'), {
+              title: `🎉 ${planInfo.label} Plan Activated`,
+              message: `Your workspace is now upgraded to ${planInfo.label} (${planInfo.minutes >= 999999 ? 'Unlimited' : planInfo.minutes + ' mins'} Ashley AI chat). Everything is active on your dashboard!`,
+              type: 'daily_summary',
+              createdAt: new Date().toISOString(),
+              read: false
+            });
+          }
+        } catch (err) {
+          console.warn('Could not sync upgrade to Firestore:', err);
+        }
+      }
+
+      refreshUI();
+      showUpgradeSuccessModal(planKey, options);
+    }
+
+    function showUpgradeSuccessModal(planKey, options = {}) {
+      const planInfo = PLAN_LIMITS[planKey];
+      const paystackUrl = PAYSTACK_LINKS[planKey];
+      const existing = document.getElementById('upgradeSuccessModal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'upgradeSuccessModal';
+      modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fade-in';
+      modal.innerHTML = `
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-[#E8ECF2] shadow-2xl text-center relative overflow-hidden">
+          <div class="w-16 h-16 rounded-2xl ${planKey === 'premium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center text-3xl font-black mx-auto mb-4 shadow-sm">
+            ${planKey === 'premium' ? '👑' : '🎉'}
+          </div>
+
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${planKey === 'premium' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'} mb-2">
+            Plan Activated & Effective
+          </span>
+
+          <h3 class="text-xl sm:text-2xl font-black text-[#1A2447] mb-2">You are now on ${planInfo.label}!</h3>
+          
+          <p class="text-xs sm:text-sm text-[#697386] mb-6 leading-relaxed">
+            Your plan upgrade is <b>active right now</b>. It has been synchronized to your dashboard, giving you <b>${planInfo.minutes >= 999999 ? 'Unlimited' : planInfo.minutes + ' minutes'}</b> of Ashley AI chat along with unlimited tasks and auto-planning.
+          </p>
+
+          <div class="p-4 rounded-2xl bg-[#F6F8FA] border border-[#E8ECF2] mb-6 text-xs text-left space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="text-[#697386]">Active Plan:</span>
+              <b class="text-[#1A2447] uppercase">${planInfo.label}</b>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[#697386]">Ashley AI Limit:</span>
+              <b class="text-[#2CA67A]">${planInfo.minutes >= 999999 ? 'Unlimited (∞)' : planInfo.minutes + ' mins/month'}</b>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[#697386]">Dashboard Status:</span>
+              <b class="text-emerald-600 font-bold">Active & Synchronized ✓</b>
+            </div>
+          </div>
+
+          <div class="space-y-2.5">
+            <a href="/dashboard.html" class="block w-full py-3 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-md text-center">
+              ← Go to Dashboard (See New Plan)
+            </a>
+            ${paystackUrl && planKey !== 'free' ? `
+              <a href="${paystackUrl}" target="_blank" rel="noopener" class="block w-full py-2.5 rounded-xl border border-[#E8ECF2] text-xs font-semibold text-[#697386] hover:text-[#1A2447] hover:bg-gray-50 transition text-center">
+                Open Paystack Payment Checkout (₦${planInfo.price.toLocaleString()}) ↗
+              </a>
+            ` : ''}
+            <button onclick="document.getElementById('upgradeSuccessModal').remove()" class="w-full py-2 text-xs text-[#697386] hover:text-[#1A2447] font-semibold cursor-pointer">
+              Stay on Pricing Page
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // Auto-detect returning from payment link
+    function checkUrlUpgrade() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const planParam = (params.get('plan') || params.get('upgraded') || params.get('tier') || '').toLowerCase();
+        const trxref = params.get('trxref') || params.get('reference');
+        const status = params.get('status');
+
+        let targetPlan = null;
+        if (planParam === 'pro' || planParam === 'premium' || planParam === 'free') {
+          targetPlan = planParam;
+        } else if (trxref || status === 'success') {
+          targetPlan = 'pro';
+        }
+
+        if (targetPlan) {
+          applyPlan(targetPlan, { fromUrl: true });
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch (e) {
+        console.warn('URL plan check error:', e);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshUI();
+      checkUrlUpgrade();
+    });
+    window.addEventListener('fbready', refreshUI);
+  </script>
+</body>
+</html>

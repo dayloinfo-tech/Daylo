@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daylo - Create Account</title>
+  <meta name="description" content="Create your Daylo account to start organizing your workday with intelligent AI scheduling.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-[#F3FDF8] min-h-screen flex items-center justify-center p-4 sm:p-6 font-sans text-[#172033]">
+  <div class="bg-white border border-[#E8ECF2] rounded-3xl p-6 sm:p-10 max-w-md w-full shadow-2xl animate-slide-up" id="signupCard">
+    <!-- Brand Header -->
+    <a href="/index.html" class="flex items-center gap-2.5 mb-6 inline-flex transition transform hover:scale-105">
+      <img src="/public/assets/aistudio/DAYLO_LOGO_2_4c8752d3.png" alt="Daylo Logo" class="h-8 w-auto object-contain">
+    </a>
+
+    <h1 class="text-2xl font-black text-[#1A2447] mb-1">Create your Daylo account</h1>
+    <p class="text-xs text-[#697386] mb-6">Start planning your workday with AI and mathematical urgency.</p>
+
+    <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4">
+      <div>
+        <label for="authName" class="block text-xs font-bold text-[#1A2447] mb-1.5">Full name</label>
+        <input id="authName" type="text" required autocomplete="name" placeholder="John Doe" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#1A2447] focus:ring-2 focus:ring-[#1A2447]/10 bg-white transition">
+      </div>
+      <div>
+        <label for="authEmail" class="block text-xs font-bold text-[#1A2447] mb-1.5">Email address</label>
+        <input id="authEmail" type="email" required autocomplete="email" placeholder="you@company.com" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#1A2447] focus:ring-2 focus:ring-[#1A2447]/10 bg-white transition">
+      </div>
+      <div>
+        <label for="authPass" class="block text-xs font-bold text-[#1A2447] mb-1.5">Password</label>
+        <div class="relative flex items-center">
+          <input id="authPass" type="password" required autocomplete="new-password" placeholder="At least 8 characters" class="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#1A2447] focus:ring-2 focus:ring-[#1A2447]/10 bg-white transition">
+          <button type="button" onclick="togglePasswordVisibility('authPass', this)" class="absolute right-3.5 text-gray-400 hover:text-[#1A2447] focus:outline-none p-1 cursor-pointer transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label for="authPass2" class="block text-xs font-bold text-[#1A2447] mb-1.5">Confirm password</label>
+        <div class="relative flex items-center">
+          <input id="authPass2" type="password" required autocomplete="new-password" placeholder="••••••••" class="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[#E8ECF2] text-xs focus:outline-none focus:border-[#1A2447] focus:ring-2 focus:ring-[#1A2447]/10 bg-white transition">
+          <button type="button" onclick="togglePasswordVisibility('authPass2', this)" class="absolute right-3.5 text-gray-400 hover:text-[#1A2447] focus:outline-none p-1 cursor-pointer transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="errMsg" class="text-xs text-red-500 font-medium min-h-4"></div>
+
+      <button id="submitBtn" class="w-full py-3 rounded-xl bg-[#1A2447] text-white font-bold text-xs hover:bg-[#2A376B] transition-all transform hover:-translate-y-0.5 shadow-md cursor-pointer" type="submit">
+        Create Account & Get Started
+      </button>
+    </form>
+
+    <!-- Social Auth Divider -->
+    <div class="my-5 flex items-center gap-3">
+      <div class="flex-1 h-px bg-[#E8ECF2]"></div>
+      <span class="text-[11px] text-[#697386] uppercase font-semibold">or</span>
+      <div class="flex-1 h-px bg-[#E8ECF2]"></div>
+    </div>
+
+    <!-- Google Sign In -->
+    <button onclick="handleGoogleLogin()" type="button" class="w-full py-2.5 rounded-xl border border-[#E8ECF2] text-xs font-bold text-[#1A2447] hover:bg-[#F6F8FA] transition flex items-center justify-center gap-2.5 shadow-xs cursor-pointer">
+      <svg class="w-4 h-4 flex-none" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <div class="mt-6 pt-5 border-t border-[#E8ECF2] text-center text-xs text-[#697386]">
+      Already have an account?
+      <a href="/login.html" class="text-[#2CA67A] font-bold ml-1 hover:underline">Log in</a>
+    </div>
+
+    <div class="mt-3 text-center">
+      <a href="/index.html" class="text-xs text-[#697386] hover:text-[#1A2447]">← Back to home</a>
+    </div>
+  </div>
+
+  <script type="module" src="/firebase.js"></script>
+  <script>
+    function togglePasswordVisibility(fieldId, btn) {
+      const input = document.getElementById(fieldId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`;
+      } else {
+        input.type = 'password';
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+      }
+    }
+
+    async function handleGoogleLogin() {
+      try {
+        let fb = window.FB;
+        if (!fb || !fb.ok) {
+          await new Promise(r => setTimeout(r, 600));
+          fb = window.FB;
+        }
+
+        if (fb && fb.ok && fb.signInWithPopup) {
+          const provider = new fb.GoogleAuthProvider();
+          provider.addScope('https://www.googleapis.com/auth/calendar.events');
+          const res = await fb.signInWithPopup(fb.auth, provider);
+          
+          try {
+            const cred = fb.GoogleAuthProvider.credentialFromResult(res);
+            if (cred && cred.accessToken) {
+              sessionStorage.setItem('daylo_gcal_token', cred.accessToken);
+            }
+          } catch (_) {}
+          
+          let rawName = res.user.displayName || res.user.email.split('@')[0];
+          let formattedFullName = rawName.split(/\s+/).map(w => {
+                let clean = w.replace(/[^a-zA-Z]/g, '');
+                return clean ? clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase() : '';
+              }).filter(Boolean).join(' ') || 'User';
+
+          const userObj = { name: formattedFullName, email: res.user.email, uid: res.user.uid };
+          localStorage.setItem('daylo_session', JSON.stringify(userObj));
+          
+          // Sync with Firestore
+          if (fb.db && fb.setDoc) {
+            try {
+              // We use setDoc with merge: true to avoid overwriting existing data if they already have an account
+              await fb.setDoc(fb.doc(fb.db, 'users', res.user.uid), {
+                name: formattedFullName,
+                email: res.user.email,
+                // Default values only for new users
+                plan: 'free',
+                aiMinutesUsed: 0,
+                aiLimit: 60,
+                totalAIRequests: 0,
+                role: ['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(res.user.email) ? 'admin' : 'user',
+                created_at: new Date().toISOString()
+              }, { merge: true });
+            } catch (err) {
+              console.warn('Could not sync Google user to Firestore:', err);
+            }
+          }
+
+          // Link admin accounts directly to Admin Portal
+          if (['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(res.user.email)) {
+            window.location.href = '/admin.html';
+          } else {
+            window.location.href = '/dashboard.html';
+          }
+        }
+      } catch (error) {
+        console.error('Google signup/login error:', error);
+        document.getElementById('errMsg').textContent = "Google authentication failed. Please try again.";
+      }
+    }
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      const name = document.getElementById('authName').value.trim();
+      const email = document.getElementById('authEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('authPass').value;
+      const pass2 = document.getElementById('authPass2').value;
+      const err = document.getElementById('errMsg');
+      const btn = document.getElementById('submitBtn');
+
+      if (!name) { err.textContent = 'Please enter your name.'; return; }
+      if (pass.length < 8) { err.textContent = 'Password must be at least 8 characters.'; return; }
+      if (pass !== pass2) { err.textContent = 'Passwords do not match.'; return; }
+
+      err.textContent = '';
+      btn.disabled = true;
+
+      try {
+        let words = name.split(/\s+/).map(w => {
+          let clean = w.replace(/[^a-zA-Z]/g, '');
+          if (!clean) return '';
+          return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+        }).filter(Boolean);
+        let fullFormattedName = words.length ? words.join(' ') : 'User';
+
+        let fb = window.FB;
+        if (!fb || !fb.ok) {
+          await new Promise(r => setTimeout(r, 600));
+          fb = window.FB;
+        }
+
+        if (fb && fb.ok && fb.createUserWithEmailAndPassword) {
+          const cred = await fb.createUserWithEmailAndPassword(fb.auth, email, pass);
+          if (fb.updateProfile) {
+            try { await fb.updateProfile(cred.user, { displayName: fullFormattedName }); } catch (_) {}
+          }
+          if (fb.sendEmailVerification) {
+            await fb.sendEmailVerification(cred.user);
+          }
+
+          // Create Firestore user document
+          if (fb.db && fb.setDoc) {
+            try {
+              await fb.setDoc(fb.doc(fb.db, 'users', cred.user.uid), {
+                name: fullFormattedName,
+                email: email,
+                plan: 'free',
+                aiMinutesUsed: 0,
+                aiLimit: 60,
+                totalAIRequests: 0,
+                role: ['dayloinfo@gmail.com', 'uchechukwusandra0@gmail.com'].includes(email) ? 'admin' : 'user',
+                created_at: new Date().toISOString()
+              });
+            } catch (err) {
+              console.warn('Could not create Firestore user doc:', err);
+            }
+          }
+
+          if (fb.signOut) {
+            await fb.signOut(fb.auth);
+          }
+
+          try {
+            const uMap = JSON.parse(localStorage.getItem('daylo_users') || '{}');
+            uMap[email] = { name: fullFormattedName, email: email, joined: new Date().toISOString() };
+            localStorage.setItem('daylo_users', JSON.stringify(uMap));
+          } catch (_) {}
+
+          const card = document.getElementById('signupCard');
+          card.innerHTML = `
+            <div class="text-center py-6 space-y-5 animate-slide-up">
+              <div class="w-14 h-14 bg-emerald-50 text-[#2CA67A] rounded-2xl flex items-center justify-center text-2xl mx-auto font-black shadow-xs">✉</div>
+              <h2 class="text-xl font-black text-[#1A2447]">Verify your email</h2>
+              <p class="text-xs text-[#697386] leading-relaxed">
+                We have sent you a verification email to <b>${email}</b>. Please verify it and log in.
+              </p>
+              <a href="/login.html" class="block w-full py-3 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-md">
+                Log In
+              </a>
+            </div>
+          `;
+          return;
+        } else {
+          showVerificationScreen(email);
+        }
+      } catch (error) {
+        btn.disabled = false;
+        const code = error.code || '';
+        if (code === 'auth/email-already-in-use' || (error.message && error.message.includes('already-in-use'))) {
+          err.innerHTML = 'An account with this email already exists. <a href="/login.html" class="underline font-bold text-[#1A2447]">Log in</a> or reset your password.';
+        } else if (code === 'auth/weak-password') {
+          err.textContent = 'Password is too weak. Please use at least 8 characters.';
+        } else if (code === 'auth/invalid-email') {
+          err.textContent = 'Please enter a valid email address.';
+        } else {
+          err.textContent = error.message || 'Signup could not be completed. Please try again.';
+        }
+      }
+    }
+
+    function showVerificationScreen(email) {
+      const card = document.getElementById('signupCard');
+      card.innerHTML = `
+        <div class="text-center py-6 space-y-5 animate-slide-up">
+          <div class="w-14 h-14 bg-emerald-50 text-[#2CA67A] rounded-2xl flex items-center justify-center text-2xl mx-auto font-black shadow-xs">✉</div>
+          <h2 class="text-xl font-black text-[#1A2447]">Verify your email</h2>
+          <p class="text-xs text-[#697386] leading-relaxed">
+            We have sent you a verification email to <b>${email}</b>. Please verify it and log in.
+          </p>
+          <a href="/login.html" class="block w-full py-3 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-md">
+            Log In
+          </a>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

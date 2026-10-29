@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daylo - AI Productivity Planner & Assistant</title>
+  <meta name="description" content="Daylo combines tasks, calendar, urgency scoring and an adaptive AI assistant into one unified workday OS.">
+  <meta property="og:title" content="Daylo - AI Productivity Planner & Assistant">
+  <meta property="og:description" content="Daylo combines tasks, calendar, urgency scoring and an adaptive AI assistant into one unified workday OS.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="shortcut icon" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+
+  <!-- Inter Font from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            daylo: {
+              navy: '#1A2447',
+              navyDark: '#131B38',
+              navyHover: '#2A376B',
+              bg: '#F3FDF8',
+              border: '#E8ECF2',
+              accent: '#2CA67A',
+              accentLight: '#EBF5F0',
+              muted: '#697386',
+              ink: '#172033',
+              card: '#FFFFFF'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg: #F3FDF8;
+      --navy: #1A2447;
+      --card: #FFFFFF;
+      --border: #E8ECF2;
+      --brand: #1A2447;
+      --accent: #2CA67A;
+      --ink: #172033;
+      --muted: #697386;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--ink);
+      margin: 0;
+      padding: 0;
+    }
+    .rb {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      border-radius: 6px;
+      background: #DFE1E8;
+    }
+    .rb.t {
+      background: #1A2447;
+    }
+    .rb.g {
+      background: #FFFFFF;
+      border: 1.5px dashed #2CA67A;
+    }
+    .now {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #E85D75;
+    }
+    .tlw {
+      overflow-x: auto;
+    }
+    .tl {
+      position: relative;
+      margin-left: 46px;
+      height: 528px;
+      min-width: 260px;
+    }
+    .hl {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 1px solid #F0F1F4;
+    }
+    .hl span {
+      position: absolute;
+      left: -46px;
+      top: -8px;
+      font-size: 11px;
+      color: #8A91A0;
+      width: 38px;
+      text-align: right;
+      font-weight: 600;
+    }
+    .ev {
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      border-radius: 9px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #F2F3F7;
+      color: #626B7C;
+      overflow: hidden;
+    }
+    .ev small {
+      display: block;
+      font-weight: 500;
+      opacity: 0.85;
+    }
+    .ev.t {
+      background: #EBF5F0;
+      border-left: 3px solid #2CA67A;
+      color: #1A2447;
+    }
+    .ev.d {
+      opacity: 0.5;
+    }
+    .ev.g {
+      background: #FFFFFF;
+      border: 1.5px dashed #2CA67A;
+      color: #2CA67A;
+    }
+    .nowl {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 2px solid #E85D75;
+    }
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 110px;
+    }
+    .bars div {
+      flex: 1;
+      border-radius: 6px;
+      background: #E4E6EE;
+    }
+    .bars div.pk {
+      background: #1A2447;
+    }
+    .bl {
+      display: flex;
+      gap: 8px;
+      font-size: 11px;
+      color: #8A91A0;
+      text-align: center;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+    .bl span {
+      flex: 1;
+    }
+    .sw {
+      flex: none;
+      width: 42px;
+      height: 24px;
+      border-radius: 99px;
+      background: #D9DCE6;
+      position: relative;
+      padding: 0;
+      cursor: pointer;
+      border: none;
+    }
+    .sw:after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      transition: transform 0.15s ease-in-out;
+    }
+    .sw[aria-checked="true"] {
+      background: #2CA67A;
+    }
+    .sw[aria-checked="true"]:after {
+      transform: translateX(18px);
+    }
+    .ring {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      background: conic-gradient(#2CA67A 0 74%, #E8ECF2 74%);
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+    .ring:after {
+      content: '74%';
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      display: grid;
+      place-items: center;
+      font-weight: 850;
+      color: #1A2447;
+    }
+    @keyframes bounce-subtle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    .animate-bounce-subtle {
+      animation: bounce-subtle 2s infinite ease-in-out;
+    }
+    @keyframes float-smooth {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: float-smooth 5s infinite ease-in-out;
+    }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-up {
+      animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .card-hover {
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px -8px rgba(26, 36, 71, 0.08);
+    }
+    button, a {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    button:active, a:active {
+      transform: scale(0.98);
+    }
+
+    /* Scroll Reveal Section Animations */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+    .reveal-delay-6 { transition-delay: 0.6s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-on-scroll {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#F3FDF8] min-h-screen">
+  <div id="root"></div>
+
+  <!-- Firebase module & App JS -->
+  <script type="module" src="/firebase.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
