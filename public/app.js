@@ -1309,9 +1309,9 @@ function initScrollAnimations() {
 function landing() {
   root.innerHTML = `
     <div class="min-h-screen bg-[#F3FDF8] font-sans text-[#172033]">
-      <nav class="h-16 sm:h-20 border-b border-[#E8ECF2] flex items-center justify-between px-4 sm:px-8 md:px-12 sticky top-0 z-40 bg-cover bg-center" style="background-image: url('/public/assets/aistudio/Frame_388_a7211cc4.png');">
+      <nav class="h-16 sm:h-20 border-b border-[#E8ECF2] flex items-center justify-between px-4 sm:px-8 md:px-12 sticky top-0 z-40 bg-cover bg-center" style="background-image: url('/assets/aistudio/Frame%20388.png');">
         <div class="flex items-center gap-2 sm:gap-3">
-          <img src="/public/assets/aistudio/DAYLO_LOGO_2_4c8752d3.png" alt="Daylo Logo" class="h-6 sm:h-8 w-auto object-contain">
+          <img src="/assets/aistudio/DAYLO%20LOGO%202%20(3).png" alt="Daylo Logo" class="h-6 sm:h-8 w-auto object-contain">
         </div>
         <div class="hidden md:flex items-center gap-2">
           <a onclick="sc('features')" class="px-4 py-2 rounded-xl text-sm font-semibold text-[#697386] hover:text-[#1A2447] hover:bg-[#F6F8FA] transition cursor-pointer">Features</a>
@@ -1349,7 +1349,7 @@ function landing() {
 
           <!-- Hero Device Mockup Container -->
           <div class="mt-12 md:mt-16 max-w-5xl mx-auto relative flex items-center justify-center reveal-on-scroll reveal-delay-1">
-            <img src="/public/assets/aistudio/image_5__1__f93de2a5.png" alt="Daylo App Mockup" class="w-full h-auto rounded-2xl md:rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.65)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)] object-cover">
+            <img src="/assets/aistudio/image%205.png" alt="Daylo App Mockup" class="w-full h-auto rounded-2xl md:rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.65)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)] object-cover">
           </div>
         </div>
       </section>
@@ -1619,7 +1619,7 @@ function shell() {
         <div>
           <!-- Brand Logo -->
           <div class="flex items-center justify-center md:justify-start pb-6 border-b border-white/10 mb-6 cursor-pointer gap-2" onclick="go('dashboard')">
-            <img src="/public/assets/aistudio/DAYLO_LOGO_-_WHITE_2_029ff8f8.png" alt="Daylo Logo" class="h-8 w-auto object-contain">
+            <img src="/assets/aistudio/DAYLO%20LOGO%20-%20WHITE%202.png" alt="Daylo Logo" class="h-8 w-auto object-contain">
           </div>
 
           <!-- Navigation Links -->
@@ -1676,7 +1676,7 @@ function shell() {
       <!-- Main Content Area -->
       <main class="ml-16 md:ml-64 flex-1 flex flex-col min-w-0 overflow-x-hidden">
         <!-- Topbar -->
-        <header class="h-16 border-b border-[#E8ECF2] sticky top-0 z-50 flex items-center justify-between px-3 sm:px-4 bg-cover bg-center" style="background-image: url('/public/assets/aistudio/Frame_388_a7211cc4.png');">
+        <header class="h-16 border-b border-[#E8ECF2] sticky top-0 z-50 flex items-center justify-between px-3 sm:px-4 bg-cover bg-center" style="background-image: url('/assets/aistudio/Frame%20388.png');">
           <div class="flex items-center min-w-0 flex-1">
             <h2 class="text-sm font-bold text-[#1A2447] truncate">${NAVS.find(n => n[0] === page)?.[2] || 'Overview'}</h2>
           </div>
