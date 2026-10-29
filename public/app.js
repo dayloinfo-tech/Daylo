@@ -937,7 +937,7 @@ function autoMiss() {
     }
   });
   tasks.forEach(t => {
-    if (t.status === 'missed' && !usePlan()) t.proposal = mkProp(t);
+    if (t.status === 'missed') t.proposal = mkProp(t);
   });
 }
 
@@ -3334,18 +3334,6 @@ function approve(id) {
 async function another(id) {
   const t = tasks.find(x => x.id == id);
   if (!t || !t.proposal) return;
-  if (usePlan()) {
-    const cur = slotISO(t.proposal), old = t.proposal;
-    t.pending = true;
-    render();
-    const it = parsePlan(await api('plan', { body: planBody('reschedule', [t], { exclude: [cur], after: cur.start_iso }) }));
-    const x = it.find(i => i.id == t.id) || it[0];
-    t.pending = false;
-    if (x) t.proposal = { k: x.k, s: x.s, len: x.len, reason: x.reason, src: 'plan' };
-    else { t.proposal = old; toast('The planner has no alternative time to suggest.'); }
-    render();
-    return;
-  }
   const n = findSlot(t, { i: dIdx(t.proposal.k), s: t.proposal.s });
   if (n) {
     t.proposal = { ...n, reason: why(t, n), src: 'demo' };
@@ -3595,9 +3583,15 @@ function applyTaskRows(rows, options = {}) {
     if (st === 'missed' && !t.proposal) {
       t.proposal = mkProp(t);
     }
-    out.push(t);
+    if (!out.some(item => String(item.id) === String(t.id))) {
+      out.push(t);
+    }
   });
-  old.filter(t => t.status === 'done' && !out.some(x => x.id == t.id)).forEach(t => out.push(t));
+  old.filter(t => t.status === 'done' && !out.some(x => String(x.id) === String(t.id))).forEach(t => {
+    if (!out.some(item => String(item.id) === String(t.id))) {
+      out.push(t);
+    }
+  });
   tasks = out;
   autoMiss();
   if (page === 'tasks') {
@@ -3652,6 +3646,7 @@ async function pushTask(t) {
   const F = window.FB;
   if (!remote() || !F || !F.db) return 'local_' + Date.now();
   try {
+    const s = t.slot ? slotISO(t.slot) : null;
     const r = await F.addDoc(F.collection(F.db, 'tasks'), {
       uid: user.uid,
       content: t.title,
@@ -3662,12 +3657,14 @@ async function pushTask(t) {
       priority: t.prio,
       status: 'open',
       missed_count: 0,
+      scheduled_start: s ? s.start_iso : null,
+      scheduled_end: s ? s.end_iso : null,
       created_at: new Date().toISOString()
     });
     return r.id;
   } catch (e) {
-    console.warn('Firestore pushTask warning (saving locally):', e);
-    return 'local_' + Date.now();
+    console.warn('Firestore pushTask warning:', e);
+    return null;
   }
 }
 
@@ -3751,11 +3748,22 @@ async function planDraft() {
       <div class="font-bold text-[#1A2447]">${esc(draft.title)}</div>
       <p class="text-[#697386] mt-1">${draft.kind}, ${dueTxt({ due: draft.due })}, ${draft.dur}h estimate${P.bias ? ' (padded to ' + adj(t) + 'h)' : ''}, ${['', 'low', 'medium', 'high'][draft.prio]} priority.<br>${p ? 'Scheduled: <b class="text-[#2CA67A]">' + sl(p) + '</b>. ' + esc(why(t, p)) + '.' : 'No free slot before deadline.'}</p>
     </div>
-    <button class="w-full mt-3 py-2.5 rounded-xl bg-[#2CA67A] text-white text-xs font-bold hover:bg-[#208b64] transition" onclick="confirmAdd()">Add to My Schedule</button>
+    <button id="confirmAddBtn" class="w-full mt-3 py-2.5 rounded-xl bg-[#2CA67A] text-white text-xs font-bold hover:bg-[#208b64] transition cursor-pointer" onclick="confirmAdd(this)">Add to My Schedule</button>
   `;
 }
 
-async function confirmAdd() {
+let isSavingTask = false;
+
+async function confirmAdd(btnEl) {
+  if (isSavingTask) return;
+  if (!draft) return;
+  isSavingTask = true;
+
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.textContent = 'Saving task…';
+  }
+
   const d = draft;
   const t = {
     id: nid++,
@@ -3769,38 +3777,53 @@ async function confirmAdd() {
     slot: null,
     miss: 0
   };
+
+  // Pre-calculate slot
+  t.slot = findSlot(t);
+
   if (remote()) {
-    toast('Saving task…');
     try {
       const id = await pushTask(t);
       if (!id) {
-        return toast('Could not save task. Please try again.');
+        toast('Could not save task. Please check your connection or permissions.');
+        isSavingTask = false;
+        if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Add to My Schedule'; }
+        return;
       }
       t.id = id;
-      // Pre-calculate local slot for instant UI feedback
-      t.slot = findSlot(t);
-      tasks.push(t);
+
+      // Add to tasks array if not already present
+      const existingIdx = tasks.findIndex(x => String(x.id) === String(id));
+      if (existingIdx >= 0) {
+        tasks[existingIdx] = t;
+      } else {
+        tasks.push(t);
+      }
+
       closeAdd();
       render();
-      if (usePlan()) {
-        planTasks([t]);
-      } else {
-        t.slot = findSlot(t);
-        render();
-        confirmSlot(t);
+      toast('Task saved successfully ✓');
+
+      // Sync slot to Google Calendar if connected
+      if (t.slot) {
+        syncSlot(t);
       }
-      return;
     } catch (err) {
       console.error('Error in confirmAdd:', err);
-      return toast('Could not save task. Please check your connection or permissions.');
+      toast('Could not save task. Please check your connection or permissions.');
+    } finally {
+      isSavingTask = false;
     }
+    return;
   }
-  t.slot = findSlot(t);
+
+  // Local non-remote mode
   tasks.push(t);
   save();
   closeAdd();
   render();
-  toast(t.slot ? 'Added for ' + sl(t.slot) : 'Added, but no free slot was found.');
+  toast(t.slot ? 'Task saved successfully ✓ Scheduled for ' + sl(t.slot) : 'Task saved successfully ✓');
+  isSavingTask = false;
 }
 
 let isSendingChat = false;
