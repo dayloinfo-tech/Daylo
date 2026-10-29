@@ -6,4 +6,4 @@
   # The Firebase web config (including its apiKey) is public by design and is
   # shipped to the browser. Exclude only the files that carry it from smart
   # secret detection; all other files are still scanned.
-  SECRETS_SCAN_SMART_DETECTION_OMIT_PATHS = "firebase-applet-config.json,dist/assets/firebase-*.js"
+  SECRETS_SCAN_SMART_DETECTION_OMIT_PATHS = "firebase-applet-config.json,dist/assets/firebase-config-*.js"
