@@ -165,7 +165,16 @@
         }
       } catch (error) {
         console.error('Google login error:', error);
-        document.getElementById('errMsg').textContent = "Google login failed. Please try again.";
+        const code = error.code || '';
+        let msg = "Google login failed. Please try again.";
+        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+          msg = "Google sign-in was cancelled.";
+        } else if (code === 'auth/popup-blocked') {
+          msg = "Popup was blocked by your browser. Please allow popups.";
+        } else if (error.message) {
+          msg = error.message;
+        }
+        document.getElementById('errMsg').textContent = msg;
       }
     }
 

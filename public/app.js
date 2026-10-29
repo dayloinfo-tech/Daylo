@@ -1156,11 +1156,13 @@ async function googleAuth() {
       return;
     } catch (e) {
       console.warn('Firebase Google Auth popup error:', e);
-      if (e.code && !e.code.includes('closed-by-user')) {
-        try {
-          handleFirestoreError(e, 'write', 'users');
-        } catch (_) {}
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+        return toast('Google sign-in was cancelled.');
       }
+      if (e.code === 'auth/popup-blocked') {
+        return toast('Popup was blocked by your browser. Please allow popups.');
+      }
+      return toast('Google sign-in failed: ' + (e.message || 'Please try again.'));
     }
   }
   const email = prompt('Enter your Google email address:', 'user@gmail.com') || 'user@gmail.com';
@@ -3647,8 +3649,8 @@ async function syncTasks(options = {}) {
 }
 
 async function pushTask(t) {
-  if (!remote()) return null;
   const F = window.FB;
+  if (!remote() || !F || !F.db) return 'local_' + Date.now();
   try {
     const r = await F.addDoc(F.collection(F.db, 'tasks'), {
       uid: user.uid,
@@ -3664,8 +3666,8 @@ async function pushTask(t) {
     });
     return r.id;
   } catch (e) {
-    handleFirestoreError(e, 'create', 'tasks');
-    return null;
+    console.warn('Firestore pushTask warning (saving locally):', e);
+    return 'local_' + Date.now();
   }
 }
 
