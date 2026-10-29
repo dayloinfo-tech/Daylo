@@ -7,3 +7,7 @@
   # shipped to the browser. Exclude only the files that carry it from smart
   # secret detection; all other files are still scanned.
   SECRETS_SCAN_SMART_DETECTION_OMIT_PATHS = "firebase-applet-config.json,dist/assets/firebase-*.js"
+  # SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES is stored as a secret env var and
+  # holds that same public Firebase apiKey, so the env-var value scanner flags
+  # it wherever the config is bundled. Skip value-matching for that key only.
+  SECRETS_SCAN_OMIT_KEYS = "SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES"
