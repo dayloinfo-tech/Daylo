@@ -1327,7 +1327,7 @@ function landing() {
       </nav>
 
       <!-- Hero Banner with Dark Navy Header Background matching Figma -->
-      <section class="bg-gradient-to-b from-[#1A2447] via-[#1E2B54] to-[#1A2447] text-white pt-16 pb-20 px-6 text-center relative overflow-hidden">
+      <section class="bg-gradient-to-b from-[#1A2447] via-[#1E2B54] to-[#1A2447] text-white pt-16 pb-32 px-6 text-center relative overflow-hidden">
         <div class="max-w-5xl mx-auto relative z-10 reveal-on-scroll">
           <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold text-[#2CA67A] uppercase tracking-wider mb-5">
             ✦ YOUR DAY, INTELLIGENTLY ORGANIZED
@@ -1346,16 +1346,18 @@ function landing() {
               See how it works
             </button>
           </div>
+        </div>
+      </section>
 
-          <!-- Hero Device Mockup Container -->
-          <div class="mt-12 md:mt-16 max-w-5xl mx-auto relative flex items-center justify-center reveal-on-scroll reveal-delay-1">
-            <img src="/assets/aistudio/app-mockup.png" alt="Daylo App Mockup" class="w-full h-auto rounded-2xl md:rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.65)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)] object-cover">
-          </div>
+      <!-- Product Mockup Showcase Section (Professionally placed between Hero and Features) -->
+      <section class="max-w-6xl mx-auto px-6 -mt-16 md:-mt-24 relative z-20 reveal-on-scroll reveal-delay-1">
+        <div class="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-3xl border border-white/20 shadow-[0_30px_70px_rgba(26,36,71,0.2)]">
+          <img src="/assets/aistudio/app-mockup.png" alt="Daylo App Mockup" class="w-full h-auto rounded-2xl object-cover shadow-sm">
         </div>
       </section>
 
       <!-- Section: One place for the whole day matching Figma 6 white cards -->
-      <section class="max-w-6xl mx-auto px-6 py-20" id="features">
+      <section class="max-w-6xl mx-auto px-6 pt-12 pb-20" id="features">
         <div class="text-left mb-12 reveal-on-scroll">
           <h2 class="text-3xl font-extrabold text-[#1A2447] tracking-tight">One place for the whole day</h2>
           <p class="text-xs md:text-sm text-[#697386] mt-2 max-w-xl">
@@ -1527,6 +1529,18 @@ function landing() {
 
 function auth(type) {
   const L = type === 'login';
+  let loginName = '';
+  try {
+    const s = JSON.parse(LS.get('daylo_session') || '{}');
+    if (s && s.name) loginName = s.name.split(' ')[0];
+    else {
+      const uMap = users();
+      const keys = Object.keys(uMap);
+      if (keys.length > 0 && uMap[keys[0]].name) loginName = uMap[keys[0]].name.split(' ')[0];
+    }
+  } catch (_) {}
+  const loginTitle = L ? (loginName ? `Welcome back, ${loginName}` : 'Welcome back') : 'Create your Daylo account';
+
   root.innerHTML = `
     <div class="min-h-screen bg-[#F3FDF8] flex items-center justify-center p-6 font-sans">
       <div class="bg-white border border-[#E8ECF2] rounded-3xl p-8 md:p-10 max-w-md w-full shadow-xl">
@@ -1534,7 +1548,7 @@ function auth(type) {
           <div class="w-8 h-8 rounded-xl bg-[#1A2447] text-white flex items-center justify-center font-black">✦</div>
           <span class="font-black text-xl text-[#1A2447]">${appName}</span>
         </div>
-        <h1 class="text-2xl font-black text-[#1A2447] mb-1">${L ? 'Welcome back to Daylo' : 'Create your Daylo account'}</h1>
+        <h1 class="text-2xl font-black text-[#1A2447] mb-1">${loginTitle}</h1>
         <p class="text-xs text-[#697386] mb-6">${L ? 'Pick up right where your schedule left off.' : 'Start structuring your workday with AI protection.'}</p>
 
         <form onsubmit="submitAuth(event,'${type}')" novalidate class="space-y-4">
