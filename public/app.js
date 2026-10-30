@@ -823,14 +823,8 @@ const nowH = () => {
   const n = new Date();
   return n.getHours() + n.getMinutes() / 60;
 };
-const MEET = {
-  1: [['Team sync', 14, 15]],
-  2: [['Weekly sync', 14, 15]],
-  3: [['Co-founder 1:1', 15, 16]],
-  4: [['Design review', 10, 11]],
-  5: [['Demo rehearsal', 14, 16]]
-};
-const meets = i => gcal ? GB.filter(g => g.k === dk(DAYS[i])).map(g => [g.t, g.s, g.e]) : (MEET[DAYS[i].getDay()] || []);
+const MEET = {};
+const meets = i => gcal ? GB.filter(g => g.k === dk(DAYS[i])).map(g => [g.t, g.s, g.e]) : [];
 const adj = t => P.bias ? Math.ceil(t.dur * (P.mult || 1.5) * 2) / 2 : t.dur;
 const inPk = x => x >= P.pk[0] && x < P.pk[1];
 const pkLabel = () => {
@@ -1816,7 +1810,7 @@ function taskRow(t) {
 
 function ribbon(i) {
   const k = dk(DAYS[i]), pc = h => (h - 8) / 11 * 100;
-  const b = [`<div class="rb" style="left:${pc(12.5)}%;width:${pc(13.5) - pc(12.5)}%" title="Lunch Break"></div>`];
+  const b = [];
 
   meets(i).forEach(m => b.push(`<div class="rb" title="${m[0]}" style="left:${pc(m[1])}%;width:${pc(m[2]) - pc(m[1])}%"></div>`));
   tasks.forEach(t => {
@@ -2284,7 +2278,7 @@ function tasksPage() {
 }
 
 function calendarPage() {
-  const H = 48, k = dk(DAYS[sel]), ev = [`<div class="ev" style="top:${4.5 * H}px;height:${H - 2}px">Lunch Break</div>`];
+  const H = 48, k = dk(DAYS[sel]), ev = [];
   let ln = '';
   meets(sel).forEach(m => ev.push(`<div class="ev" style="top:${(m[1] - 8) * H}px;height:${(m[2] - m[1]) * H - 2}px">${m[0]}<small>${f(m[1])}–${f(m[2])}</small></div>`));
   tasks.forEach(t => {
@@ -2518,53 +2512,123 @@ function demoLearning() {
   `;
 }
 
-let INS = null, INSERR = false, insApplied = false;
-async function loadInsights(silent) {
-  if (!remote()) return;
-  if (!conf('insights')) {
-    if (!silent && page === 'learning') toast('Insights webhook not configured');
-    return;
-  }
-  
-  if (!silent && page === 'learning') {
-    INSERR = false;
-    render();
+function calculateTaskInsights() {
+  const all = tasks || [];
+  const completed = all.filter(t => t.status === 'done');
+  const missed = all.filter(t => t.status === 'missed' || (t.miss && t.miss > 0));
+
+  const counts = [0, 0, 0, 0, 0, 0, 0];
+  all.forEach(t => {
+    let hour = 10;
+    if (t.completed_at) {
+      const dt = new Date(t.completed_at);
+      if (!isNaN(dt.getTime())) hour = dt.getHours();
+    } else if (t.slot && typeof t.slot.s === 'number') {
+      hour = Math.floor(t.slot.s);
+    }
+    
+    if (hour >= 7 && hour < 9) counts[0]++;
+    else if (hour >= 9 && hour < 11) counts[1]++;
+    else if (hour >= 11 && hour < 13) counts[2]++;
+    else if (hour >= 13 && hour < 15) counts[3]++;
+    else if (hour >= 15 && hour < 17) counts[4]++;
+    else if (hour >= 17 && hour < 19) counts[5]++;
+    else counts[6]++;
+  });
+
+  let maxIdx = 1;
+  let maxVal = -1;
+  counts.forEach((c, idx) => {
+    if (c > maxVal) {
+      maxVal = c;
+      maxIdx = idx;
+    }
+  });
+
+  const bucketStarts = [7, 9, 11, 13, 15, 17, 19];
+  const peakStart = bucketStarts[maxIdx];
+  const peakEnd = peakStart + 2;
+
+  const timed = all.filter(t => t.actual != null && Number(t.actual) > 0 && t.dur != null && Number(t.dur) > 0);
+  let bias = P.mult || 1.5;
+  if (timed.length > 0) {
+    const totalRatio = timed.reduce((acc, t) => acc + (Number(t.actual) / (Number(t.dur) * 60)), 0);
+    bias = Math.round((totalRatio / timed.length) * 10) / 10;
   }
 
-  const r = await api('insights', { body: { action: 'get', founder_id: user.uid, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone } });
+  const onTimeCount = completed.filter(t => !t.miss || t.miss === 0).length;
+  const onTimeRate = completed.length ? (onTimeCount / completed.length) : 0.8;
+  const firstTryRate = all.length ? ((all.length - missed.length) / all.length) : 0.85;
+
+  const eveningMisses = missed.filter(t => t.slot && t.slot.s >= 18).length;
+
+  return {
+    sample_size: all.length,
+    completed_count: completed.length,
+    peak_window: { start: peakStart, end: peakEnd },
+    hours: {
+      counts,
+      labels: ['7a', '9a', '11a', '1p', '3p', '5p', '7p']
+    },
+    estimate_bias: bias,
+    estimate_samples: timed.length,
+    on_time_rate: onTimeRate,
+    first_try_rate: firstTryRate,
+    confidence: Math.min(0.95, Math.max(0.40, 0.40 + (all.length * 0.05))),
+    misses: {
+      total: missed.length,
+      evening: eveningMisses
+    },
+    suggestions: {
+      peak_window: { start: peakStart, end: peakEnd },
+      estimate_multiplier: bias,
+      avoid_evenings: eveningMisses > 0
+    }
+  };
+}
+
+let INS = null, INSERR = false, insApplied = false;
+async function loadInsights(silent) {
+  INS = calculateTaskInsights();
   
-  // Consider success if we have hours data or at least some stats
-  const d = r.ok && r.data && r.data.success !== false && (r.data.hours || r.data.sample_size != null) ? r.data : null;
-  
-  INSERR = !d;
-  if (d) INS = d;
-  
-  if (d && !insApplied) {
+  if (remote() && conf('insights')) {
+    try {
+      const r = await api('insights', { body: { action: 'get', founder_id: user.uid, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone } });
+      if (r.ok && r.data && r.data.success !== false && (r.data.hours || r.data.sample_size != null)) {
+        INS = { ...INS, ...r.data };
+      }
+    } catch (e) {
+      console.warn('Insights webhook info:', e);
+    }
+  }
+
+  if (INS && !insApplied) {
     insApplied = true;
-    if (d.sample_size >= 5) {
-      const sg = d.suggestions || {};
+    if (INS.sample_size >= 1) {
+      const sg = INS.suggestions || {};
       if (sg.peak_window) { P.pk = [sg.peak_window.start, sg.peak_window.end]; P.peak = true; }
       if (sg.estimate_multiplier) { P.mult = sg.estimate_multiplier; P.bias = true; }
     }
   }
-  
+
   if (!silent || page === 'learning') render();
 }
 
 const hr12 = x => (x > 12 ? x - 12 : x) + (x >= 12 ? ' PM' : ' AM');
 function realBars(h) {
-  const m = Math.max(1, ...h.counts), w = INS.peak_window;
+  if (!h || !Array.isArray(h.counts) || !h.counts.length) return '';
+  const m = Math.max(1, ...h.counts), w = INS && INS.peak_window;
   return `
-    <div class="bars">${h.counts.map((v, i) => {
+    <div class="bars flex items-end gap-2.5 h-[120px] pt-4">${h.counts.map((v, i) => {
       const st = 7 + 2 * i;
-      return `<div class="${w && st >= w.start && st < w.end ? 'pk' : ''}" style="height:${Math.max(4, v / m * 100)}%" title="${v} tasks"></div>`;
+      return `<div class="${w && st >= w.start && st < w.end ? 'pk !bg-[#1A2447]' : '!bg-[#E4E6EE]'} flex-1 rounded-md transition-all hover:opacity-90" style="height:${Math.max(6, (v / m) * 100)}%" title="${v} task${v === 1 ? '' : 's'}"></div>`;
     }).join('')}</div>
-    <div class="bl">${h.labels.map(x => `<span>${x}</span>`).join('')}</div>
+    <div class="bl flex gap-2.5 text-[11px] font-semibold text-[#8A91A0] text-center mt-2">${(h.labels || ['7a', '9a', '11a', '1p', '3p', '5p', '7p']).map(x => `<span class="flex-1">${x}</span>`).join('')}</div>
   `;
 }
 
 function learningPage() {
-  if (!(remote() && conf('insights'))) return demoLearning();
+  INS = calculateTaskInsights();
   const head = `
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
       <div>
@@ -2572,44 +2636,41 @@ function learningPage() {
         <p class="text-xs text-[#697386] mt-1">Daylo learns from the tasks you complete and the slots you miss.</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="px-3 py-1.5 rounded-xl border border-[#E8ECF2] bg-white text-[10px] font-bold text-[#1A2447] hover:bg-[#F6F8FA] transition flex items-center gap-1.5" onclick="loadInsights()">
+        <button class="px-3 py-1.5 rounded-xl border border-[#E8ECF2] bg-white text-[10px] font-bold text-[#1A2447] hover:bg-[#F6F8FA] transition flex items-center gap-1.5 cursor-pointer" onclick="loadInsights()">
           <span>↻</span> Refresh
         </button>
       </div>
     </div>
   `;
-  if (!INS) {
+
+  if (!tasks || !tasks.length) {
     return head + `
-      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-6 text-center">
-        <p class="text-xs text-[#697386]">${INSERR ? 'Could not load your patterns. <button class="px-3 py-1 bg-[#1A2447] text-white rounded-lg text-xs font-bold ml-2" onclick="loadInsights()">Try again</button>' : 'Analyzing completion telemetry…'}</p>
+      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-8 text-center max-w-xl mx-auto shadow-xs">
+        <div class="w-12 h-12 rounded-2xl bg-[#EBF5F0] text-[#2CA67A] flex items-center justify-center text-xl font-bold mx-auto mb-3">◌</div>
+        <h3 class="font-extrabold text-base text-[#1A2447] mb-1">No tasks created yet</h3>
+        <p class="text-xs text-[#697386] mb-5 leading-relaxed">Add tasks from Overview or My Tasks. Daylo will calculate your peak productivity hours, estimate accuracy, and completion telemetry in real-time.</p>
+        <button onclick="quickAdd()" class="px-5 py-2.5 rounded-xl bg-[#1A2447] text-white text-xs font-bold hover:bg-[#2A376B] transition shadow-md cursor-pointer">＋ Add First Task</button>
       </div>
     `;
   }
+
   const n = INS.sample_size, pc = v => v == null ? 'n/a' : Math.round(v * 100) + '%';
-  if (n < 5) {
-    return head + `
-      <div class="bg-white border border-[#E8ECF2] rounded-2xl p-6">
-        <h3 class="font-bold text-sm text-[#1A2447] mb-2">Building Your Profile (${n} of 5 tasks logged)</h3>
-        <p class="text-xs text-[#697386] leading-relaxed">Complete ${5 - n} more task${5 - n === 1 ? '' : 's'} and Daylo will chart your exact peak performance window and estimate multiplier.</p>
-      </div>
-    `;
-  }
   const sg = INS.suggestions || {}, w = INS.peak_window || {start: P.pk[0], end: P.pk[1]}, inW = w ? INS.hours.counts.reduce((a, c, i) => { const st = 7 + 2 * i; return a + (st >= w.start && st < w.end ? c : 0); }, 0) : 0, R = [];
-  R.push(['peak', 'Schedule important work between ' + hr12(P.pk[0]) + ' and ' + hr12(P.pk[1]), w ? 'You finished ' + inW + ' of ' + n + ' tasks in this window.' : 'Optimize planning around your preferred focus hours.']);
-  if (sg.estimate_multiplier) R.push(['bias', 'Plan for ' + sg.estimate_multiplier + 'x your time estimates', 'Across ' + INS.estimate_samples + ' timed tasks, real time was ' + sg.estimate_multiplier + 'x your estimate.']);
-  if (sg.avoid_evenings) R.push(['eve', 'Keep evenings free', INS.misses.evening + ' of ' + INS.misses.total + ' missed slots were after 6 PM.']);
+  R.push(['peak', 'Schedule important work between ' + hr12(P.pk[0]) + ' and ' + hr12(P.pk[1]), w ? 'You have ' + inW + ' of ' + n + ' tasks mapped to this focus window.' : 'Optimize planning around your preferred focus hours.']);
+  if (INS.estimate_bias) R.push(['bias', 'Plan for ' + INS.estimate_bias + 'x your time estimates', INS.estimate_samples > 0 ? 'Across ' + INS.estimate_samples + ' timed tasks, real time was ' + INS.estimate_bias + 'x your estimate.' : 'Adaptive 1.5x estimate bias padding active.']);
+  R.push(['eve', 'Keep evenings free', INS.misses.evening > 0 ? INS.misses.evening + ' of ' + INS.misses.total + ' missed slots were after 6 PM.' : 'Protects your evenings for recovery.']);
 
   return head + `
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div class="lg:col-span-6 bg-white border border-[#E8ECF2] rounded-2xl p-6 shadow-xs">
-        <h3 class="font-bold text-sm text-[#1A2447] mb-2">Tasks Completed by Time of Day</h3>
+        <h3 class="font-bold text-sm text-[#1A2447] mb-2">Tasks Completed & Scheduled by Time of Day</h3>
         ${realBars(INS.hours)}
-        <p class="text-xs text-[#1A2447] mt-3 mb-4">Peak focus: <b class="text-[#2CA67A]">${w ? hr12(w.start) + ' to ' + hr12(w.end) : 'No clear peak yet'}</b></p>
+        <p class="text-xs text-[#1A2447] mt-3 mb-4">Peak focus: <b class="text-[#2CA67A]">${w ? hr12(w.start) + ' to ' + hr12(w.end) : '9:00 AM to 11:00 AM'}</b></p>
         <div class="grid grid-cols-2 gap-3 mb-4">
           <div class="p-3.5 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2]">
             <div class="text-[11px] font-semibold text-[#697386]">Estimate Bias</div>
-            <div class="text-xl font-black text-[#1A2447] mt-1">${INS.estimate_bias ? INS.estimate_bias + 'x' : 'n/a'}</div>
-            <div class="text-[10px] text-[#697386]">${INS.estimate_bias ? INS.estimate_samples + ' timed tasks' : INS.estimate_samples + '/3 timed tasks'}</div>
+            <div class="text-xl font-black text-[#1A2447] mt-1">${INS.estimate_bias ? INS.estimate_bias + 'x' : '1.5x'}</div>
+            <div class="text-[10px] text-[#697386]">${INS.estimate_samples > 0 ? INS.estimate_samples + ' timed tasks' : 'Default adaptive multiplier'}</div>
           </div>
           <div class="p-3.5 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2]">
             <div class="text-[11px] font-semibold text-[#697386]">Finished on Time</div>
@@ -2618,14 +2679,14 @@ function learningPage() {
           </div>
         </div>
         <div class="p-3.5 rounded-xl bg-[#F6F8FA] border border-[#E8ECF2] text-xs text-[#697386]">
-          <b>${pc(INS.confidence)} confidence:</b> Calculated from ${n} completed tasks and ${INS.misses.total} rescheduled slots.
+          <b>${pc(INS.confidence)} confidence:</b> Calculated directly from your ${n} active task${n === 1 ? '' : 's'} (${INS.completed_count} completed) and ${INS.misses.total} rescheduled slots.
         </div>
       </div>
 
       <div class="lg:col-span-6 bg-white border border-[#E8ECF2] rounded-2xl p-6 shadow-xs">
         <h3 class="font-bold text-sm text-[#1A2447] mb-3">Active Pattern Rules</h3>
         <div class="space-y-3">
-          ${R.length ? R.map(r => `
+          ${R.map(r => `
             <div class="flex items-center justify-between p-3.5 rounded-xl border border-[#E8ECF2] bg-[#F6F8FA]">
               <div>
                 <div class="text-xs font-bold text-[#1A2447]">${r[1]}</div>
@@ -2633,7 +2694,7 @@ function learningPage() {
               </div>
               <button class="sw" role="switch" aria-checked="${P[r[0]]}" aria-label="${r[1]}" onclick="rule('${r[0]}')"></button>
             </div>
-          `).join('') : '<p class="text-xs text-[#697386]">No strong habit pattern detected yet. Keep logging your daily completions.</p>'}
+          `).join('')}
         </div>
       </div>
     </div>
